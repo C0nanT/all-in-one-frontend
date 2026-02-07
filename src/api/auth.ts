@@ -14,3 +14,18 @@ export async function login(
     device_name: 'web',
   }) as Promise<LoginResponse>
 }
+
+export async function register(
+  name: string,
+  email: string,
+  password: string,
+  password_confirmation: string
+): Promise<LoginResponse> {
+  return api.post('/register', {
+    name,
+    email,
+    password,
+    password_confirmation,
+    device_name: 'web',
+  }) as Promise<LoginResponse>
+}

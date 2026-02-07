@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { login as apiLogin } from '@/api/auth'
+import { login as apiLogin, register as apiRegister } from '@/api/auth'
 
 const AUTH_TOKEN_KEY = 'auth_token'
 
@@ -20,6 +20,22 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.setItem(AUTH_TOKEN_KEY, newToken)
   }
 
+  async function register(
+    name: string,
+    email: string,
+    password: string,
+    password_confirmation: string
+  ) {
+    const { token: newToken } = await apiRegister(
+      name,
+      email,
+      password,
+      password_confirmation
+    )
+    token.value = newToken
+    localStorage.setItem(AUTH_TOKEN_KEY, newToken)
+  }
+
   function logout() {
     token.value = null
     localStorage.removeItem(AUTH_TOKEN_KEY)
@@ -30,6 +46,7 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated,
     init,
     login,
+    register,
     logout,
   }
 })

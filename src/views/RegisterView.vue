@@ -19,22 +19,35 @@ const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
 
+const name = ref('')
 const email = ref('')
 const password = ref('')
+const passwordConfirmation = ref('')
 const errorMessage = ref('')
 const loading = ref(false)
 
 async function onSubmit(e: Event) {
   e.preventDefault()
   errorMessage.value = ''
+
+  if (password.value !== passwordConfirmation.value) {
+    errorMessage.value = 'As senhas não coincidem.'
+    return
+  }
+
   loading.value = true
   try {
-    await authStore.login(email.value, password.value)
+    await authStore.register(
+      name.value,
+      email.value,
+      password.value,
+      passwordConfirmation.value
+    )
     const redirect = (route.query.redirect as string) || undefined
     await router.push(redirect ? { path: redirect } : { name: 'Home' })
   } catch (err: unknown) {
     errorMessage.value =
-      err instanceof Error ? err.message : 'Erro ao entrar. Tente novamente.'
+      err instanceof Error ? err.message : 'Erro ao criar conta. Tente novamente.'
   } finally {
     loading.value = false
   }
@@ -45,14 +58,25 @@ async function onSubmit(e: Event) {
   <div class="flex min-h-svh items-center justify-center p-4 bg-gray-800">
     <Card class="w-full max-w-md">
       <CardHeader>
-        <CardTitle>Entrar</CardTitle>
+        <CardTitle>Criar conta</CardTitle>
         <CardDescription>
-          Use seu e-mail e senha para acessar a aplicação.
+          Preencha os dados para se registrar na aplicação.
         </CardDescription>
       </CardHeader>
       <form @submit="onSubmit" class="flex flex-col gap-4">
         <CardContent class="flex flex-col gap-4">
           <ErrorMessage :message="errorMessage" />
+          <div class="grid gap-2">
+            <Label for="name">Nome</Label>
+            <Input
+              id="name"
+              v-model="name"
+              type="text"
+              placeholder="Seu nome"
+              autocomplete="name"
+              required
+            />
+          </div>
           <div class="grid gap-2">
             <Label for="email">E-mail</Label>
             <Input
@@ -71,7 +95,18 @@ async function onSubmit(e: Event) {
               v-model="password"
               type="password"
               placeholder="••••••••"
-              autocomplete="current-password"
+              autocomplete="new-password"
+              required
+            />
+          </div>
+          <div class="grid gap-2">
+            <Label for="password-confirmation">Confirmar senha</Label>
+            <Input
+              id="password-confirmation"
+              v-model="passwordConfirmation"
+              type="password"
+              placeholder="••••••••"
+              autocomplete="new-password"
               required
             />
           </div>
@@ -82,20 +117,20 @@ async function onSubmit(e: Event) {
             class="w-full"
             :disabled="loading"
           >
-            {{ loading ? 'Entrando…' : 'Entrar' }}
+            {{ loading ? 'Criando conta…' : 'Criar conta' }}
           </Button>
           <p class="text-center text-sm text-muted-foreground">
-            Não tem conta?
+            Já tem conta?
             <RouterLink
               :to="{
-                name: 'Register',
+                name: 'Login',
                 query: route.query.redirect
                   ? { redirect: route.query.redirect }
                   : undefined,
               }"
               class="text-primary underline underline-offset-4 hover:no-underline"
             >
-              Criar conta
+              Entrar
             </RouterLink>
           </p>
         </CardFooter>
