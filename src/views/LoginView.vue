@@ -45,7 +45,7 @@ async function onSubmit(e: Event) {
 </script>
 
 <template>
-  <div class="flex min-h-svh items-center justify-center p-4">
+  <div class="flex min-h-svh items-center justify-center p-4 bg-gray-800">
     <Card class="w-full max-w-md">
       <CardHeader>
         <CardTitle>Entrar</CardTitle>
@@ -53,7 +53,7 @@ async function onSubmit(e: Event) {
           Use seu e-mail e senha para acessar a aplicação.
         </CardDescription>
       </CardHeader>
-      <form @submit="onSubmit">
+      <form @submit="onSubmit" class="flex flex-col gap-4">
         <CardContent class="flex flex-col gap-4">
           <p
             v-if="errorMessage"
