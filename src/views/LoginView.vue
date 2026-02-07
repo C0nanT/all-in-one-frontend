@@ -32,12 +32,8 @@ async function onSubmit(e: Event) {
     const redirect = (route.query.redirect as string) || undefined
     await router.push(redirect ? { path: redirect } : { name: 'Home' })
   } catch (err: unknown) {
-    const message =
-      err && typeof err === 'object' && 'response' in err
-        ? (err as { response?: { data?: { message?: string }; status?: number } })
-            .response?.data?.message ?? 'Erro ao entrar. Tente novamente.'
-        : 'Erro ao entrar. Tente novamente.'
-    errorMessage.value = message
+    errorMessage.value =
+      err instanceof Error ? err.message : 'Erro ao entrar. Tente novamente.'
   } finally {
     loading.value = false
   }
