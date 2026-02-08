@@ -28,41 +28,41 @@ import {
   TableRow,
 } from '@/components/ui/table'
 
-type Status = 'aberto' | 'pago'
+type Status = 'open' | 'paid'
 
-interface ContaAPagar {
+interface PayableItem {
   id: string
-  conta: string
-  valor: string
+  name: string
+  amount: string
   status: Status
 }
 
 const dialogOpen = ref(false)
-const contas = ref<ContaAPagar[]>([
-  { id: '1', conta: 'Aluguel', valor: '1500,00', status: 'aberto' },
-  { id: '2', conta: 'Energia', valor: '280,00', status: 'pago' },
-  { id: '3', conta: 'Internet', valor: '120,00', status: 'aberto' },
+const items = ref<PayableItem[]>([
+  { id: '1', name: 'Rent', amount: '1500.00', status: 'open' },
+  { id: '2', name: 'Electricity', amount: '280.00', status: 'paid' },
+  { id: '3', name: 'Internet', amount: '120.00', status: 'open' },
 ])
 
-const novaConta = ref('')
-const novoValor = ref('')
-const novoStatus = ref<Status>('aberto')
+const newName = ref('')
+const newAmount = ref('')
+const newStatus = ref<Status>('open')
 
-function gerarId() {
+function generateId() {
   return String(Date.now())
 }
 
-function adicionarConta() {
-  if (!novaConta.value.trim()) return
-  contas.value.push({
-    id: gerarId(),
-    conta: novaConta.value.trim(),
-    valor: novoValor.value.trim() || '0,00',
-    status: novoStatus.value,
+function addItem() {
+  if (!newName.value.trim()) return
+  items.value.push({
+    id: generateId(),
+    name: newName.value.trim(),
+    amount: newAmount.value.trim() || '0.00',
+    status: newStatus.value,
   })
-  novaConta.value = ''
-  novoValor.value = ''
-  novoStatus.value = 'aberto'
+  newName.value = ''
+  newAmount.value = ''
+  newStatus.value = 'open'
   dialogOpen.value = false
 }
 </script>
@@ -70,49 +70,49 @@ function adicionarConta() {
 <template>
   <div class="space-y-6">
     <div class="flex items-center justify-between bg-card p-4 rounded-md">
-      <h1 class="text-2xl font-semibold">Contas a pagar</h1>
+      <h1 class="text-2xl font-semibold">Accounts payable</h1>
       <Dialog v-model:open="dialogOpen">
         <DialogTrigger as-child>
           <Button>
             <Plus class="size-4 shrink-0" />
-            Adicionar
+            Add
           </Button>
         </DialogTrigger>
         <DialogContent class="bg-card max-w-md">
           <DialogHeader>
-            <DialogTitle>Nova conta</DialogTitle>
+            <DialogTitle>New account</DialogTitle>
           </DialogHeader>
-          <form class="grid gap-4 py-4" @submit.prevent="adicionarConta">
+          <form class="grid gap-4 py-4" @submit.prevent="addItem">
             <div class="grid gap-2">
-              <Label for="conta">Conta</Label>
+              <Label for="account">Account</Label>
               <Input
-                id="conta"
-                v-model="novaConta"
-                placeholder="Ex.: Aluguel"
+                id="account"
+                v-model="newName"
+                placeholder="e.g. Rent"
               />
             </div>
             <div class="grid gap-2">
-              <Label for="valor">Valor</Label>
+              <Label for="amount">Amount</Label>
               <Input
-                id="valor"
-                v-model="novoValor"
-                placeholder="Ex.: 1500,00"
+                id="amount"
+                v-model="newAmount"
+                placeholder="e.g. 1500.00"
               />
             </div>
             <div class="grid gap-2">
               <Label for="status">Status</Label>
-              <Select v-model="novoStatus">
+              <Select v-model="newStatus">
                 <SelectTrigger id="status" class="w-full">
-                  <SelectValue placeholder="Selecione o status" />
+                  <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="aberto">Aberto</SelectItem>
-                  <SelectItem value="pago">Pago</SelectItem>
+                  <SelectItem value="open">Open</SelectItem>
+                  <SelectItem value="paid">Paid</SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <DialogFooter>
-              <Button type="submit" class="mx-auto">Adicionar</Button>
+              <Button type="submit" class="mx-auto">Add</Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -123,18 +123,18 @@ function adicionarConta() {
       <Table>
         <TableHeader class="bg-card">
           <TableRow>
-            <TableHead>Conta</TableHead>
-            <TableHead>Valor</TableHead>
+            <TableHead>Account</TableHead>
+            <TableHead>Amount</TableHead>
             <TableHead>Status</TableHead>
-            <TableHead class="w-[100px]">Ações</TableHead>
+            <TableHead class="w-[100px]">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
-          <TableRow v-for="item in contas" :key="item.id">
-            <TableCell class="font-medium">{{ item.conta }}</TableCell>
+          <TableRow v-for="item in items" :key="item.id">
+            <TableCell class="font-medium">{{ item.name }}</TableCell>
             <TableCell>
               <Input
-                v-model="item.valor"
+                v-model="item.amount"
                 class="max-w-[140px]"
                 type="text"
               />
@@ -145,14 +145,14 @@ function adicionarConta() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="aberto">Aberto</SelectItem>
-                  <SelectItem value="pago">Pago</SelectItem>
+                  <SelectItem value="open">Open</SelectItem>
+                  <SelectItem value="paid">Paid</SelectItem>
                 </SelectContent>
               </Select>
             </TableCell>
             <TableCell>
               <Button variant="outline" size="sm">
-                Ações
+                Actions
               </Button>
             </TableCell>
           </TableRow>

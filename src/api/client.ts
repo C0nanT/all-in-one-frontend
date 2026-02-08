@@ -18,7 +18,7 @@ api.interceptors.response.use(
     const data = err.response?.data
     const message =
       data && typeof data === 'object' && 'message' in data && typeof (data as { message: unknown }).message === 'string'
-        ? (data as { message: string }).message : err.response?.statusText ?? 'Erro de conexão.'
+        ? (data as { message: string }).message : err.response?.statusText ?? 'Connection error.'
     return Promise.reject(new Error(message))
   }
 )

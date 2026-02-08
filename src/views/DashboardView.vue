@@ -2,7 +2,7 @@
 
 <template>
   <div>
-    <h1 class="text-2xl font-semibold">Bem-vindo</h1>
-    <p class="text-muted-foreground">Você está autenticado.</p>
+    <h1 class="text-2xl font-semibold">Welcome</h1>
+    <p class="text-muted-foreground">You are authenticated.</p>
   </div>
 </template>

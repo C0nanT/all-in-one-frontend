@@ -28,8 +28,8 @@ const router = createRouter({
         },
         {
           path: 'contas-a-pagar',
-          name: 'ContasAPagar',
-          component: () => import('@/views/ContasAPagarView.vue'),
+          name: 'AccountsPayable',
+          component: () => import('@/views/AccountsPayableView.vue'),
         },
       ],
     },

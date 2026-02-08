@@ -28,7 +28,7 @@ const navItems = [
     icon: LayoutDashboard,
   },
   {
-    title: 'Contas a pagar',
+    title: 'Accounts payable',
     to: '/contas-a-pagar',
     icon: DollarSign,
   },
@@ -49,7 +49,7 @@ function logout() {
     </SidebarHeader>
     <SidebarContent>
       <SidebarGroup>
-        <SidebarGroupLabel>Navegação</SidebarGroupLabel>
+        <SidebarGroupLabel>Navigation</SidebarGroupLabel>
         <SidebarGroupContent>
           <SidebarMenu>
             <SidebarMenuItem v-for="item in navItems" :key="item.title">
@@ -72,7 +72,7 @@ function logout() {
       >
         <Moon v-if="!isDark" class="size-4 shrink-0" />
         <Sun v-else class="size-4 shrink-0" />
-        <span>{{ isDark ? 'Modo claro' : 'Modo escuro' }}</span>
+        <span>{{ isDark ? 'Light mode' : 'Dark mode' }}</span>
       </Button>
       <Button
         variant="ghost"
@@ -80,7 +80,7 @@ function logout() {
         @click="logout"
       >
         <LogOut class="size-4 shrink-0" />
-        <span>Sair</span>
+        <span>Log out</span>
       </Button>
     </SidebarFooter>
   </Sidebar>

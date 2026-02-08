@@ -34,7 +34,7 @@ async function onSubmit(e: Event) {
     await router.push(redirect ? { path: redirect } : { name: 'Dashboard' })
   } catch (err: unknown) {
     errorMessage.value =
-      err instanceof Error ? err.message : 'Erro ao entrar. Tente novamente.'
+      err instanceof Error ? err.message : 'Error logging in. Please try again.'
   } finally {
     loading.value = false
   }
@@ -45,27 +45,27 @@ async function onSubmit(e: Event) {
   <div class="flex min-h-svh items-center justify-center p-4 bg-background">
     <Card class="w-full max-w-md">
       <CardHeader>
-        <CardTitle>Entrar</CardTitle>
+        <CardTitle>Log in</CardTitle>
         <CardDescription>
-          Use seu e-mail e senha para acessar a aplicação.
+          Use your email and password to access the application.
         </CardDescription>
       </CardHeader>
       <form @submit="onSubmit" class="flex flex-col gap-4">
         <CardContent class="flex flex-col gap-4">
           <ErrorMessage :message="errorMessage" />
           <div class="grid gap-2">
-            <Label for="email">E-mail</Label>
+            <Label for="email">Email</Label>
             <Input
               id="email"
               v-model="email"
               type="email"
-              placeholder="seu@email.com"
+              placeholder="you@example.com"
               autocomplete="email"
               required
             />
           </div>
           <div class="grid gap-2">
-            <Label for="password">Senha</Label>
+            <Label for="password">Password</Label>
             <Input
               id="password"
               v-model="password"
@@ -82,10 +82,10 @@ async function onSubmit(e: Event) {
             class="w-full"
             :disabled="loading"
           >
-            {{ loading ? 'Entrando…' : 'Entrar' }}
+            {{ loading ? 'Logging in…' : 'Log in' }}
           </Button>
           <p class="text-center text-sm text-muted-foreground">
-            Não tem conta?
+            Don't have an account?
             <RouterLink
               :to="{
                 name: 'Register',
@@ -95,7 +95,7 @@ async function onSubmit(e: Event) {
               }"
               class="text-primary underline underline-offset-4 hover:no-underline"
             >
-              Criar conta
+              Create account
             </RouterLink>
           </p>
         </CardFooter>
