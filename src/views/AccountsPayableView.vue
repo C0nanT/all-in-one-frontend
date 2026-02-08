@@ -144,7 +144,7 @@ async function addItem() {
       </Dialog>
     </div>
 
-    <div class="rounded-md border mt-4">
+    <div class="rounded-md border mt-4 w-1/2 ms-auto">
       <Table>
         <TableHeader class="bg-card">
           <TableRow>
