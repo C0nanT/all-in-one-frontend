@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { Plus } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import {
@@ -27,48 +27,61 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-
-type Status = 'open' | 'paid'
-
-interface PayableItem {
-  id: string
-  name: string
-  amount: string
-  status: Status
-}
+import {
+  fetchPayableAccounts,
+  createPayableAccount,
+  type PayableAccount,
+  type PayableStatus,
+} from '@/api/payableAccounts'
 
 const dialogOpen = ref(false)
-const items = ref<PayableItem[]>([
-  { id: '1', name: 'Rent', amount: '1500.00', status: 'open' },
-  { id: '2', name: 'Electricity', amount: '280.00', status: 'paid' },
-  { id: '3', name: 'Internet', amount: '120.00', status: 'open' },
-])
+const items = ref<PayableAccount[]>([])
+const loading = ref(false)
+const loadingCreate = ref(false)
+const error = ref('')
 
 const newName = ref('')
 const newAmount = ref('')
-const newStatus = ref<Status>('open')
+const newStatus = ref<PayableStatus>('open')
 
-function generateId() {
-  return String(Date.now())
-}
+onMounted(async () => {
+  loading.value = true
+  error.value = ''
+  try {
+    items.value = await fetchPayableAccounts()
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : 'Failed to load accounts'
+  } finally {
+    loading.value = false
+  }
+})
 
-function addItem() {
+async function addItem() {
   if (!newName.value.trim()) return
-  items.value.push({
-    id: generateId(),
-    name: newName.value.trim(),
-    amount: newAmount.value.trim() || '0.00',
-    status: newStatus.value,
-  })
-  newName.value = ''
-  newAmount.value = ''
-  newStatus.value = 'open'
-  dialogOpen.value = false
+  loadingCreate.value = true
+  error.value = ''
+  try {
+    const created = await createPayableAccount({
+      name: newName.value.trim(),
+      amount: newAmount.value.trim() || '0.00',
+      status: newStatus.value,
+    })
+    items.value.push(created)
+    newName.value = ''
+    newAmount.value = ''
+    newStatus.value = 'open'
+    dialogOpen.value = false
+  } catch (e) {
+    error.value = e instanceof Error ? e.message : 'Failed to create account'
+  } finally {
+    loadingCreate.value = false
+  }
 }
 </script>
 
 <template>
   <div class="space-y-6">
+    <p v-if="error" class="text-sm text-destructive">{{ error }}</p>
     <div class="flex items-center justify-between bg-card p-4 rounded-md">
       <h1 class="text-2xl font-semibold">Accounts payable</h1>
       <Dialog v-model:open="dialogOpen">
@@ -112,7 +125,9 @@ function addItem() {
               </Select>
             </div>
             <DialogFooter>
-              <Button type="submit" class="mx-auto">Add</Button>
+              <Button type="submit" class="mx-auto" :disabled="loadingCreate">
+                {{ loadingCreate ? 'Adding…' : 'Add' }}
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -130,6 +145,11 @@ function addItem() {
           </TableRow>
         </TableHeader>
         <TableBody>
+          <TableRow v-if="loading">
+            <TableCell colspan="4" class="text-center text-muted-foreground py-8">
+              Loading…
+            </TableCell>
+          </TableRow>
           <TableRow v-for="item in items" :key="item.id">
             <TableCell class="font-medium">{{ item.name }}</TableCell>
             <TableCell>

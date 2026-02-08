@@ -9,6 +9,16 @@ export const api = axios.create({
   },
 })
 
+const AUTH_TOKEN_KEY = 'auth_token'
+
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem(AUTH_TOKEN_KEY)
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
+})
+
 api.interceptors.response.use(
   (response) => response.data,
   (err) => {
