@@ -14,13 +14,6 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import {
   Table,
   TableBody,
   TableCell,
@@ -34,7 +27,7 @@ import {
   type PayableAccount,
   type PayableStatus,
 } from '@/api/payableAccounts'
-import { formatDateHyphenToSlash } from '@/lib/format'
+import { formatDateHyphenToSlash, getFormattedDate } from '@/lib/format'
 
 const dialogOpen = ref(false)
 const items = ref<PayableAccount[]>([])
@@ -43,8 +36,6 @@ const loadingCreate = ref(false)
 const error = ref('')
 
 const newName = ref('')
-const newAmount = ref('')
-const newStatus = ref<PayableStatus>('unpaid')
 
 const statusConfig: Record<
   PayableStatus,
@@ -54,19 +45,11 @@ const statusConfig: Record<
   unpaid: { label: 'Unpaid', variant: 'destructive' },
 }
 
-function formatPeriod(date: Date): string {
-  const day = String(date.getDate()).padStart(2, '0')
-  const month = String(date.getMonth() + 1).padStart(2, '0')
-  const year = date.getFullYear()
-  return `${day}-${month}-${year}`
-}
-
 onMounted(async () => {
   loading.value = true
   error.value = ''
   try {
-    const period = formatPeriod(new Date())
-    items.value = await fetchPayableAccounts(period)
+    items.value = await fetchPayableAccounts(getFormattedDate())
   } catch (e) {
     error.value = e instanceof Error ? e.message : 'Failed to load accounts'
   } finally {
@@ -79,15 +62,9 @@ async function addItem() {
   loadingCreate.value = true
   error.value = ''
   try {
-    const created = await createPayableAccount({
-      name: newName.value.trim(),
-      amount: parseFloat(newAmount.value.trim()) || 0.0,
-      status: newStatus.value,
-    })
+    const created = await createPayableAccount(newName.value.trim())
     items.value.push(created)
     newName.value = ''
-    newAmount.value = ''
-    newStatus.value = 'unpaid'
     dialogOpen.value = false
   } catch (e) {
     error.value = e instanceof Error ? e.message : 'Failed to create account'
@@ -117,22 +94,6 @@ async function addItem() {
             <div class="grid gap-2">
               <Label for="account">Account</Label>
               <Input id="account" v-model="newName" placeholder="e.g. Rent" />
-            </div>
-            <div class="grid gap-2">
-              <Label for="amount">Amount</Label>
-              <Input id="amount" v-model="newAmount" placeholder="e.g. 1500.00" />
-            </div>
-            <div class="grid gap-2">
-              <Label for="status">Status</Label>
-              <Select v-model="newStatus">
-                <SelectTrigger id="status" class="w-full">
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="unpaid">Unpaid</SelectItem>
-                  <SelectItem value="paid">Paid</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
             <DialogFooter>
               <Button type="submit" class="mx-auto" :disabled="loadingCreate">
