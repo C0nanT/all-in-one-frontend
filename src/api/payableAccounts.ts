@@ -24,3 +24,8 @@ export async function createPayableAccount(name: string): Promise<PayableAccount
   const res = (await api.post('payable-accounts', { name })) as { data: PayableAccount }
   return res.data
 }
+
+export async function payPayableAccount(id: number): Promise<PayableAccount> {
+  const res = (await api.post(`payable-accounts/${id}/payments`)) as { data: PayableAccount }
+  return res.data
+}

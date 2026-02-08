@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { toast } from 'vue-sonner'
 import { ChevronDown, Plus } from 'lucide-vue-next'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -11,6 +12,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -24,6 +31,7 @@ import {
 import {
   fetchPayableAccounts,
   createPayableAccount,
+  payPayableAccount,
   type PayableAccount,
   type PayableStatus,
 } from '@/api/payableAccounts'
@@ -33,6 +41,7 @@ const dialogOpen = ref(false)
 const items = ref<PayableAccount[]>([])
 const loading = ref(false)
 const loadingCreate = ref(false)
+const payingId = ref<number | null>(null)
 const error = ref('')
 
 const newName = ref('')
@@ -70,6 +79,22 @@ async function addItem() {
     error.value = e instanceof Error ? e.message : 'Failed to create account'
   } finally {
     loadingCreate.value = false
+  }
+}
+
+function onEdit(_item: PayableAccount) {
+  // TODO: navegar para rota/modal de edição quando existir
+}
+
+async function onPay(id: number) {
+  payingId.value = id
+  try {
+    await payPayableAccount(id)
+    items.value = await fetchPayableAccounts(getFormattedDate())
+  } catch (e) {
+    toast.error(e instanceof Error ? e.message : 'Failed to register payment')
+  } finally {
+    payingId.value = null
   }
 }
 </script>
@@ -134,9 +159,24 @@ async function addItem() {
             <TableCell>{{ item.payment?.payer }}</TableCell>
             <TableCell>{{ formatDateHyphenToSlash(item.payment?.period) }}</TableCell>
             <TableCell>
-              <Button variant="outline" size="sm">
-                Actions <ChevronDown class="size-4 shrink-0" />
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger as-child>
+                  <Button variant="outline" size="sm">
+                    Actions <ChevronDown class="size-4 shrink-0" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem @select="onEdit(item)">
+                    Editar
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    :disabled="payingId === item.id"
+                    @select="onPay(item.id)"
+                  >
+                    {{ payingId === item.id ? 'Paying…' : 'Pagar' }}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </TableCell>
           </TableRow>
         </TableBody>
