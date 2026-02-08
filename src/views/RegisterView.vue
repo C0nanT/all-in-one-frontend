@@ -44,7 +44,7 @@ async function onSubmit(e: Event) {
       passwordConfirmation.value
     )
     const redirect = (route.query.redirect as string) || undefined
-    await router.push(redirect ? { path: redirect } : { name: 'Home' })
+    await router.push(redirect ? { path: redirect } : { name: 'Dashboard' })
   } catch (err: unknown) {
     errorMessage.value =
       err instanceof Error ? err.message : 'Erro ao criar conta. Tente novamente.'

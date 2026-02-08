@@ -23,8 +23,8 @@ const router = createRouter({
       children: [
         {
           path: '',
-          name: 'Home',
-          component: () => import('@/views/HomeView.vue'),
+          name: 'Dashboard',
+          component: () => import('@/views/DashboardView.vue'),
         },
       ],
     },
@@ -40,7 +40,7 @@ router.beforeEach((to) => {
     return { name: 'Login', query: { redirect: to.fullPath } }
   }
   if (isPublic && authStore.isAuthenticated) {
-    return { name: 'Home' }
+    return { name: 'Dashboard' }
   }
   return true
 })

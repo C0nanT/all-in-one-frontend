@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Home, LogOut, Moon, Sun } from 'lucide-vue-next'
+import { Home, LogOut, Moon, Sun, House, LayoutDashboard, DollarSign } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useTheme } from '@/composables/useTheme'
@@ -23,9 +23,14 @@ const { isDark, toggle: toggleTheme } = useTheme()
 
 const navItems = [
   {
-    title: 'Início',
+    title: 'Dashboard',
     to: '/',
-    icon: Home,
+    icon: LayoutDashboard,
+  },
+  {
+    title: 'Contas a pagar',
+    to: '/contas-a-pagar',
+    icon: DollarSign,
   },
 ]
 
