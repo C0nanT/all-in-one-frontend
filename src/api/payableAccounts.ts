@@ -5,6 +5,8 @@ export type PayableStatus = 'open' | 'paid'
 export interface PayableAccount {
   id: number
   name: string
+  payer: string
+  period: string
   amount: string
   status: PayableStatus
 }
@@ -15,8 +17,10 @@ export interface PayableAccountCreatePayload {
   status: PayableStatus
 }
 
-export async function fetchPayableAccounts(): Promise<PayableAccount[]> {
-  const res = (await api.get('payable-accounts')) as { data: PayableAccount[] }
+export async function fetchPayableAccounts(period: string): Promise<PayableAccount[]> {
+  const res = (await api.get('payable-accounts', {
+    params: { 'period': period },
+  })) as { data: PayableAccount[] }
   return res.data
 }
 

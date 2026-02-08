@@ -44,11 +44,19 @@ const newName = ref('')
 const newAmount = ref('')
 const newStatus = ref<PayableStatus>('open')
 
+function formatPeriod(date: Date): string {
+  const day = String(date.getDate()).padStart(2, '0')
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const year = date.getFullYear()
+  return `${day}-${month}-${year}`
+}
+
 onMounted(async () => {
   loading.value = true
   error.value = ''
   try {
-    items.value = await fetchPayableAccounts()
+    const period = formatPeriod(new Date())
+    items.value = await fetchPayableAccounts(period)
   } catch (e) {
     error.value = e instanceof Error ? e.message : 'Failed to load accounts'
   } finally {
@@ -139,6 +147,8 @@ async function addItem() {
         <TableHeader class="bg-card">
           <TableRow>
             <TableHead>Account</TableHead>
+            <TableHead>Payer</TableHead>
+            <TableHead>Period</TableHead>
             <TableHead>Amount</TableHead>
             <TableHead>Status</TableHead>
             <TableHead class="w-[100px]">Actions</TableHead>
@@ -146,30 +156,16 @@ async function addItem() {
         </TableHeader>
         <TableBody>
           <TableRow v-if="loading">
-            <TableCell colspan="4" class="text-center text-muted-foreground py-8">
+            <TableCell colspan="6" class="text-center text-muted-foreground py-8">
               Loading…
             </TableCell>
           </TableRow>
           <TableRow v-for="item in items" :key="item.id">
             <TableCell class="font-medium">{{ item.name }}</TableCell>
-            <TableCell>
-              <Input
-                v-model="item.amount"
-                class="max-w-[140px]"
-                type="text"
-              />
-            </TableCell>
-            <TableCell>
-              <Select v-model="item.status">
-                <SelectTrigger class="w-[140px]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="open">Open</SelectItem>
-                  <SelectItem value="paid">Paid</SelectItem>
-                </SelectContent>
-              </Select>
-            </TableCell>
+            <TableCell>{{ item.payer }}</TableCell>
+            <TableCell>{{ item.period }}</TableCell>
+            <TableCell>{{ item.amount }}</TableCell>
+            <TableCell>{{ item.status }}</TableCell>
             <TableCell>
               <Button variant="outline" size="sm">
                 Actions
