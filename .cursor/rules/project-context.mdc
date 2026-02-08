@@ -1,0 +1,47 @@
+---
+description: Contexto do projeto all-in-one-frontend para o Cursor
+alwaysApply: true
+---
+
+# Contexto do Projeto: all-in-one-frontend
+
+## Stack
+
+- **Framework**: Vue 3 (Composition API) + TypeScript
+- **Build**: Vite 7
+- **Estilo**: Tailwind CSS v4, CSS variables (slate base), tw-animate-css
+- **UI**: shadcn-vue (estilo New York), Reka UI, ícones Lucide
+- **Estado**: Pinia
+- **Roteamento**: Vue Router 4
+- **HTTP**: Axios (cliente em `src/api/client.ts`; interceptor devolve `response.data` e normaliza erros com `message`)
+
+## Estrutura principal
+
+- `src/views/` — páginas (rotas)
+- `src/layouts/` — layouts (ex.: AuthenticatedLayout)
+- `src/components/` — componentes; `src/components/ui/` — componentes shadcn (Button, Card, Sheet, Sidebar, etc.)
+- `src/composables/` — composables (ex.: useTheme)
+- `src/stores/` — stores Pinia (auth, counter)
+- `src/api/` — cliente Axios e módulos de API (auth)
+- `src/router/` — rotas; guard usa `meta.requiresAuth` e `meta.public`
+- `src/lib/utils.ts` — utilitário `cn()` (clsx + tailwind-merge)
+- `src/assets/index.css` — estilos globais e tema
+
+## Aliases (`@/`)
+
+- `@/components`, `@/components/ui`, `@/lib`, `@/composables` (definidos em components.json e tsconfig)
+
+## Convenções
+
+- Componentes Vue em PascalCase; composables com prefixo `use`
+- Autenticação: store `auth` (token em localStorage), rotas públicas vs protegidas
+- Tema: inicializado em `main.ts` via `initTheme()` de `@/composables/useTheme`
+- Novos componentes UI: usar shadcn-vue (components.json) quando fizer sentido
+- Variável de ambiente: `VITE_API_URL` para a API (ver `env.d.ts` e `.env.example`)
+
+## Scripts
+
+- `pnpm dev` — desenvolvimento
+- `pnpm build` — type-check + build
+- `pnpm lint` — ESLint com fix
+- `pnpm format` — Prettier em `src/`
