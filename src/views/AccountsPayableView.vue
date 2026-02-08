@@ -1,9 +1,17 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import {
+  type DateValue,
+  CalendarDate,
+  getLocalTimeZone,
+  today,
+} from '@internationalized/date'
+import { toDate } from 'reka-ui/date'
+import { ref, onMounted, watch } from 'vue'
 import { toast } from 'vue-sonner'
-import { ChevronDown, Plus } from 'lucide-vue-next'
+import { CalendarIcon, ChevronDown, Plus } from 'lucide-vue-next'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Calendar } from '@/components/ui/calendar'
 import {
   Dialog,
   DialogContent,
@@ -21,6 +29,11 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import {
   Table,
   TableBody,
   TableCell,
@@ -35,14 +48,52 @@ import {
   type PayableAccount,
   type PayableStatus,
 } from '@/api/payableAccounts'
-import { formatDateHyphenToSlash, getFormattedDate } from '@/lib/format'
+import {
+  formatDateHyphenToSlash,
+  formatMoneyBR,
+  getFormattedDate,
+  parseMoneyBR,
+} from '@/lib/format'
+import { cn } from '@/lib/utils'
 
 const dialogOpen = ref(false)
+const dropdownOpenId = ref<number | null>(null)
 const items = ref<PayableAccount[]>([])
 const loading = ref(false)
 const loadingCreate = ref(false)
 const payingId = ref<number | null>(null)
 const error = ref('')
+
+const payDialogOpen = ref(false)
+const payFormAccount = ref<PayableAccount | null>(null)
+const payAmount = ref('')
+const payPeriod = ref(getFormattedDate())
+const payPeriodDate = ref<DateValue>(today(getLocalTimeZone()))
+
+watch(payDialogOpen, (open) => {
+  if (open) payPeriodDate.value = periodStringToCalendarDate(payPeriod.value)
+})
+
+function periodStringToCalendarDate(s: string): DateValue {
+  const parts = s.split('-').map(Number)
+  if (parts.length !== 3) return today(getLocalTimeZone())
+  const day = parts[0] ?? 1
+  const month = parts[1] ?? 1
+  const year = parts[2] ?? new Date().getFullYear()
+  return new CalendarDate(year, month, day)
+}
+
+function onPayPeriodDateChange(date: DateValue | undefined) {
+  if (!date) return
+  payPeriodDate.value = date
+  payPeriod.value = getFormattedDate(toDate(date, getLocalTimeZone()))
+}
+
+function onAmountInput(e: Event) {
+  const target = e.target as HTMLInputElement
+  const digits = target.value.replace(/\D/g, '')
+  payAmount.value = formatMoneyBR(digits)
+}
 
 const newName = ref('')
 
@@ -86,16 +137,32 @@ function onEdit(_item: PayableAccount) {
   // TODO: navegar para rota/modal de edição quando existir
 }
 
-async function onPay(id: number) {
-  payingId.value = id
+function openPayDialog(item: PayableAccount) {
+  payFormAccount.value = item
+  payAmount.value = ''
+  payPeriod.value = getFormattedDate()
+  payDialogOpen.value = true
+  dropdownOpenId.value = null
+}
+
+async function submitPayForm() {
+  const amount = parseMoneyBR(payAmount.value)
+  if (!payFormAccount.value || amount <= 0) return
+  payingId.value = payFormAccount.value.id
   try {
-    await payPayableAccount(id)
+    await payPayableAccount(payFormAccount.value.id, amount, payPeriod.value)
+    payDialogOpen.value = false
+    payFormAccount.value = null
     items.value = await fetchPayableAccounts(getFormattedDate())
   } catch (e) {
     toast.error(e instanceof Error ? e.message : 'Failed to register payment')
   } finally {
     payingId.value = null
   }
+}
+
+function hasValidAmount(): boolean {
+  return parseMoneyBR(payAmount.value) > 0
 }
 </script>
 
@@ -123,6 +190,68 @@ async function onPay(id: number) {
             <DialogFooter>
               <Button type="submit" class="mx-auto" :disabled="loadingCreate">
                 {{ loadingCreate ? 'Adding…' : 'Add' }}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog v-model:open="payDialogOpen">
+        <DialogContent class="bg-card max-w-md">
+          <DialogHeader>
+            <DialogTitle>Registrar pagamento</DialogTitle>
+          </DialogHeader>
+          <form class="grid gap-4 py-4" @submit.prevent="submitPayForm">
+            <div class="grid gap-2">
+              <Label>Conta</Label>
+              <p class="text-sm text-muted-foreground py-2">
+                {{ payFormAccount?.name }}
+              </p>
+            </div>
+            <div class="grid gap-2">
+              <Label for="pay-amount">Amount</Label>
+              <Input
+                id="pay-amount"
+                :model-value="payAmount"
+                type="text"
+                inputmode="decimal"
+                placeholder="R$ 0,00"
+                @input="onAmountInput"
+              />
+            </div>
+            <div class="grid gap-2">
+              <Label for="pay-period">Period</Label>
+              <Popover>
+                <PopoverTrigger as-child>
+                  <Button
+                    :id="'pay-period'"
+                    variant="outline"
+                    :class="cn(
+                      'w-full justify-start text-left font-normal',
+                      !payPeriod && 'text-muted-foreground',
+                    )"
+                  >
+                    <CalendarIcon class="mr-2 size-4 shrink-0" />
+                    {{ formatDateHyphenToSlash(payPeriod) || 'Selecione a data' }}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent class="w-auto p-0" align="start">
+                  <Calendar
+                    :model-value="(payPeriodDate as import('reka-ui').DateValue)"
+                    :default-placeholder="(payPeriodDate as import('reka-ui').DateValue)"
+                    layout="month-and-year"
+                    @update:model-value="onPayPeriodDateChange"
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            <DialogFooter>
+              <Button
+                type="submit"
+                class="mx-auto"
+                :disabled="!hasValidAmount() || payingId !== null"
+              >
+                {{ payingId !== null ? 'Registrando…' : 'Pagar' }}
               </Button>
             </DialogFooter>
           </form>
@@ -159,22 +288,22 @@ async function onPay(id: number) {
             <TableCell>{{ item.payment?.payer }}</TableCell>
             <TableCell>{{ formatDateHyphenToSlash(item.payment?.period) }}</TableCell>
             <TableCell>
-              <DropdownMenu>
+              <DropdownMenu
+                :open="dropdownOpenId === item.id"
+                @update:open="(open) => (dropdownOpenId = open ? item.id : null)"
+              >
                 <DropdownMenuTrigger as-child>
                   <Button variant="outline" size="sm">
-                    Actions <ChevronDown class="size-4 shrink-0" />
+                    Actions
+                    <ChevronDown
+                      class="size-4 shrink-0 transition-transform"
+                      :class="{ 'rotate-180': dropdownOpenId === item.id }"
+                    />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                  <DropdownMenuItem @select="onEdit(item)">
-                    Editar
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    :disabled="payingId === item.id"
-                    @select="onPay(item.id)"
-                  >
-                    {{ payingId === item.id ? 'Paying…' : 'Pagar' }}
-                  </DropdownMenuItem>
+                  <DropdownMenuItem @select="onEdit(item)"> Editar </DropdownMenuItem>
+                  <DropdownMenuItem @select="openPayDialog(item)"> Pagar </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </TableCell>
