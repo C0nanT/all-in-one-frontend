@@ -148,10 +148,10 @@ async function addItem() {
         <TableHeader class="bg-card">
           <TableRow>
             <TableHead>Account</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Amount</TableHead>
             <TableHead>Payer</TableHead>
             <TableHead>Period</TableHead>
-            <TableHead>Amount</TableHead>
-            <TableHead>Status</TableHead>
             <TableHead class="w-[100px]">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -163,14 +163,14 @@ async function addItem() {
           </TableRow>
           <TableRow v-for="item in items" :key="item.id">
             <TableCell class="font-medium">{{ item.name }}</TableCell>
-            <TableCell>{{ item.payment?.payer }}</TableCell>
-            <TableCell>{{ item.payment?.period }}</TableCell>
-            <TableCell>{{ item.payment?.amount.toFixed(2) }}</TableCell>
             <TableCell>
               <Badge :variant="statusConfig[item.status].variant">
                 {{ statusConfig[item.status].label }}
               </Badge>
             </TableCell>
+            <TableCell>{{ item.payment?.amount.toFixed(2) }}</TableCell>
+            <TableCell>{{ item.payment?.payer }}</TableCell>
+            <TableCell>{{ item.payment?.period }}</TableCell>
             <TableCell>
               <Button variant="outline" size="sm">
                 Actions <ChevronDown class="size-4 shrink-0" />
