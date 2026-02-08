@@ -26,6 +26,11 @@ const router = createRouter({
           name: 'Dashboard',
           component: () => import('@/views/DashboardView.vue'),
         },
+        {
+          path: 'contas-a-pagar',
+          name: 'ContasAPagar',
+          component: () => import('@/views/ContasAPagarView.vue'),
+        },
       ],
     },
   ],
