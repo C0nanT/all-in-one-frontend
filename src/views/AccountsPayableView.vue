@@ -34,6 +34,7 @@ import {
   type PayableAccount,
   type PayableStatus,
 } from '@/api/payableAccounts'
+import { formatDateHyphenToSlash } from '@/lib/format'
 
 const dialogOpen = ref(false)
 const items = ref<PayableAccount[]>([])
@@ -170,7 +171,7 @@ async function addItem() {
             </TableCell>
             <TableCell>{{ item.payment?.amount.toFixed(2) }}</TableCell>
             <TableCell>{{ item.payment?.payer }}</TableCell>
-            <TableCell>{{ item.payment?.period }}</TableCell>
+            <TableCell>{{ formatDateHyphenToSlash(item.payment?.period) }}</TableCell>
             <TableCell>
               <Button variant="outline" size="sm">
                 Actions <ChevronDown class="size-4 shrink-0" />
