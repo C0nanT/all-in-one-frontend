@@ -28,17 +28,21 @@ api.interceptors.response.use(
     }
     if (err.response?.status === 401) {
       localStorage.removeItem(AUTH_TOKEN_KEY)
-      toast.error('Sessão expirada', {
-        description: 'Faça login novamente para continuar.',
+      toast.error('Session expired', {
+        description: 'Please login again to continue.',
       })
       const base = import.meta.env.BASE_URL?.replace(/\/$/, '') ?? ''
       window.location.href = `${base}/login`
-      return Promise.reject(new Error('Sessão expirada. Faça login novamente.'))
+      return Promise.reject(new Error('Session expired. Please login again to continue.'))
     }
     const data = err.response?.data
     const message =
-      data && typeof data === 'object' && 'message' in data && typeof (data as { message: unknown }).message === 'string'
-        ? (data as { message: string }).message : err.response?.statusText ?? 'Connection error.'
+      data &&
+      typeof data === 'object' &&
+      'message' in data &&
+      typeof (data as { message: unknown }).message === 'string'
+        ? (data as { message: string }).message
+        : (err.response?.statusText ?? 'Connection error.')
     return Promise.reject(new Error(message))
-  }
+  },
 )
