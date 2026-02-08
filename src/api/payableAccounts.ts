@@ -1,19 +1,21 @@
 import { api } from './client'
 
-export type PayableStatus = 'open' | 'paid'
+export type PayableStatus = 'unpaid' | 'paid'
 
 export interface PayableAccount {
   id: number
   name: string
-  payer: string
-  period: string
-  amount: string
   status: PayableStatus
+  payment: {
+    payer: string
+    amount: number
+    period: string
+  }
 }
 
 export interface PayableAccountCreatePayload {
   name: string
-  amount: string
+  amount: number
   status: PayableStatus
 }
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { Plus } from 'lucide-vue-next'
+import { ChevronDown, Plus } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -42,7 +42,7 @@ const error = ref('')
 
 const newName = ref('')
 const newAmount = ref('')
-const newStatus = ref<PayableStatus>('open')
+const newStatus = ref<PayableStatus>('unpaid')
 
 function formatPeriod(date: Date): string {
   const day = String(date.getDate()).padStart(2, '0')
@@ -71,13 +71,13 @@ async function addItem() {
   try {
     const created = await createPayableAccount({
       name: newName.value.trim(),
-      amount: newAmount.value.trim() || '0.00',
+      amount: parseFloat(newAmount.value.trim()) || 0.0,
       status: newStatus.value,
     })
     items.value.push(created)
     newName.value = ''
     newAmount.value = ''
-    newStatus.value = 'open'
+    newStatus.value = 'unpaid'
     dialogOpen.value = false
   } catch (e) {
     error.value = e instanceof Error ? e.message : 'Failed to create account'
@@ -95,8 +95,8 @@ async function addItem() {
       <Dialog v-model:open="dialogOpen">
         <DialogTrigger as-child>
           <Button>
-            <Plus class="size-4 shrink-0" />
             Add
+            <Plus class="size-4 shrink-0" />
           </Button>
         </DialogTrigger>
         <DialogContent class="bg-card max-w-md">
@@ -106,19 +106,11 @@ async function addItem() {
           <form class="grid gap-4 py-4" @submit.prevent="addItem">
             <div class="grid gap-2">
               <Label for="account">Account</Label>
-              <Input
-                id="account"
-                v-model="newName"
-                placeholder="e.g. Rent"
-              />
+              <Input id="account" v-model="newName" placeholder="e.g. Rent" />
             </div>
             <div class="grid gap-2">
               <Label for="amount">Amount</Label>
-              <Input
-                id="amount"
-                v-model="newAmount"
-                placeholder="e.g. 1500.00"
-              />
+              <Input id="amount" v-model="newAmount" placeholder="e.g. 1500.00" />
             </div>
             <div class="grid gap-2">
               <Label for="status">Status</Label>
@@ -127,7 +119,7 @@ async function addItem() {
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="open">Open</SelectItem>
+                  <SelectItem value="unpaid">Unpaid</SelectItem>
                   <SelectItem value="paid">Paid</SelectItem>
                 </SelectContent>
               </Select>
@@ -162,13 +154,13 @@ async function addItem() {
           </TableRow>
           <TableRow v-for="item in items" :key="item.id">
             <TableCell class="font-medium">{{ item.name }}</TableCell>
-            <TableCell>{{ item.payer }}</TableCell>
-            <TableCell>{{ item.period }}</TableCell>
-            <TableCell>{{ item.amount }}</TableCell>
+            <TableCell>{{ item.payment?.payer }}</TableCell>
+            <TableCell>{{ item.payment?.period }}</TableCell>
+            <TableCell>{{ item.payment?.amount.toFixed(2) }}</TableCell>
             <TableCell>{{ item.status }}</TableCell>
             <TableCell>
               <Button variant="outline" size="sm">
-                Actions
+                Actions <ChevronDown class="size-4 shrink-0" />
               </Button>
             </TableCell>
           </TableRow>
