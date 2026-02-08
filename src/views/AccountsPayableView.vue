@@ -1,17 +1,17 @@
 <script setup lang="ts">
-import {
-  type DateValue,
-  CalendarDate,
-  getLocalTimeZone,
-  today,
-} from '@internationalized/date'
-import { toDate } from 'reka-ui/date'
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import { toast } from 'vue-sonner'
 import { CalendarIcon, ChevronDown, Plus } from 'lucide-vue-next'
+
+import {
+  fetchPayableAccounts,
+  createPayableAccount,
+  payPayableAccount,
+  type PayableAccount,
+  type PayableStatus,
+} from '@/api/payableAccounts'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Calendar } from '@/components/ui/calendar'
 import {
   Dialog,
   DialogContent,
@@ -28,11 +28,14 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover'
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import {
   Table,
   TableBody,
@@ -42,60 +45,31 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import {
-  fetchPayableAccounts,
-  createPayableAccount,
-  payPayableAccount,
-  type PayableAccount,
-  type PayableStatus,
-} from '@/api/payableAccounts'
-import {
   formatDateHyphenToSlash,
   formatMoneyBR,
+  formatPeriodMonthYear,
   getFormattedDate,
   parseMoneyBR,
+  periodWithFirstDay,
 } from '@/lib/format'
 import { cn } from '@/lib/utils'
 
-const dialogOpen = ref(false)
-const dropdownOpenId = ref<number | null>(null)
-const items = ref<PayableAccount[]>([])
-const loading = ref(false)
-const loadingCreate = ref(false)
-const payingId = ref<number | null>(null)
-const error = ref('')
+// --- Constantes ---
 
-const payDialogOpen = ref(false)
-const payFormAccount = ref<PayableAccount | null>(null)
-const payAmount = ref('')
-const payPeriod = ref(getFormattedDate())
-const payPeriodDate = ref<DateValue>(today(getLocalTimeZone()))
-
-watch(payDialogOpen, (open) => {
-  if (open) payPeriodDate.value = periodStringToCalendarDate(payPeriod.value)
-})
-
-function periodStringToCalendarDate(s: string): DateValue {
-  const parts = s.split('-').map(Number)
-  if (parts.length !== 3) return today(getLocalTimeZone())
-  const day = parts[0] ?? 1
-  const month = parts[1] ?? 1
-  const year = parts[2] ?? new Date().getFullYear()
-  return new CalendarDate(year, month, day)
-}
-
-function onPayPeriodDateChange(date: DateValue | undefined) {
-  if (!date) return
-  payPeriodDate.value = date
-  payPeriod.value = getFormattedDate(toDate(date, getLocalTimeZone()))
-}
-
-function onAmountInput(e: Event) {
-  const target = e.target as HTMLInputElement
-  const digits = target.value.replace(/\D/g, '')
-  payAmount.value = formatMoneyBR(digits)
-}
-
-const newName = ref('')
+const MONTHS = [
+  { value: '01', label: 'Janeiro' },
+  { value: '02', label: 'Fevereiro' },
+  { value: '03', label: 'Março' },
+  { value: '04', label: 'Abril' },
+  { value: '05', label: 'Maio' },
+  { value: '06', label: 'Junho' },
+  { value: '07', label: 'Julho' },
+  { value: '08', label: 'Agosto' },
+  { value: '09', label: 'Setembro' },
+  { value: '10', label: 'Outubro' },
+  { value: '11', label: 'Novembro' },
+  { value: '12', label: 'Dezembro' },
+]
 
 const statusConfig: Record<
   PayableStatus,
@@ -104,6 +78,60 @@ const statusConfig: Record<
   paid: { label: 'Paid', variant: 'success' },
   unpaid: { label: 'Unpaid', variant: 'destructive' },
 }
+
+// --- Estado: lista ---
+
+const items = ref<PayableAccount[]>([])
+const loading = ref(false)
+const error = ref('')
+
+// --- Estado: diálogo criar conta ---
+
+const dialogOpen = ref(false)
+const newName = ref('')
+const loadingCreate = ref(false)
+
+// --- Estado: diálogo pagar ---
+
+const payDialogOpen = ref(false)
+const payFormAccount = ref<PayableAccount | null>(null)
+const payAmount = ref('')
+const payPayer = ref('')
+const payingId = ref<number | null>(null)
+
+const now = new Date()
+const payPeriod = ref(`01-${String(now.getMonth() + 1).padStart(2, '0')}-${now.getFullYear()}`)
+const payPeriodMonth = ref(String(now.getMonth() + 1).padStart(2, '0'))
+const payPeriodYear = ref(String(now.getFullYear()))
+
+// --- Estado: UI (dropdown) ---
+
+const dropdownOpenId = ref<number | null>(null)
+
+// --- Computed ---
+
+const payPeriodYearOptions = computed(() => {
+  const y = new Date().getFullYear()
+  return Array.from({ length: 11 }, (_, i) => y - 5 + i)
+})
+
+// --- Watchers ---
+
+watch([payPeriodMonth, payPeriodYear], ([m, y]) => {
+  if (m && y) payPeriod.value = `01-${m}-${y}`
+})
+
+watch(payDialogOpen, (open) => {
+  if (open) {
+    const parts = payPeriod.value.split('-')
+    if (parts.length === 3) {
+      payPeriodMonth.value = parts[1] ?? payPeriodMonth.value
+      payPeriodYear.value = parts[2] ?? payPeriodYear.value
+    }
+  }
+})
+
+// --- Ações: carregar lista ---
 
 onMounted(async () => {
   loading.value = true
@@ -116,6 +144,8 @@ onMounted(async () => {
     loading.value = false
   }
 })
+
+// --- Ações: criar conta ---
 
 async function addItem() {
   if (!newName.value.trim()) return
@@ -137,12 +167,32 @@ function onEdit(_item: PayableAccount) {
   // TODO: navegar para rota/modal de edição quando existir
 }
 
+// --- Ações: pagar ---
+
 function openPayDialog(item: PayableAccount) {
   payFormAccount.value = item
   payAmount.value = ''
-  payPeriod.value = getFormattedDate()
+  const d = new Date()
+  payPeriod.value = `01-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`
+  payPeriodMonth.value = String(d.getMonth() + 1).padStart(2, '0')
+  payPeriodYear.value = String(d.getFullYear())
   payDialogOpen.value = true
   dropdownOpenId.value = null
+}
+
+function onAmountInput(e: Event) {
+  const target = e.target as HTMLInputElement
+  const digits = target.value.replace(/\D/g, '')
+  payAmount.value = formatMoneyBR(digits)
+}
+
+function onPayerInput(e: Event) {
+  const target = e.target as HTMLInputElement
+  payPayer.value = target.value
+}
+
+function hasValidAmount(): boolean {
+  return parseMoneyBR(payAmount.value) > 0
 }
 
 async function submitPayForm() {
@@ -150,7 +200,7 @@ async function submitPayForm() {
   if (!payFormAccount.value || amount <= 0) return
   payingId.value = payFormAccount.value.id
   try {
-    await payPayableAccount(payFormAccount.value.id, amount, payPeriod.value)
+    await payPayableAccount(payFormAccount.value.id, amount, periodWithFirstDay(payPeriod.value))
     payDialogOpen.value = false
     payFormAccount.value = null
     items.value = await fetchPayableAccounts(getFormattedDate())
@@ -160,17 +210,16 @@ async function submitPayForm() {
     payingId.value = null
   }
 }
-
-function hasValidAmount(): boolean {
-  return parseMoneyBR(payAmount.value) > 0
-}
 </script>
 
 <template>
   <div class="space-y-6">
     <p v-if="error" class="text-sm text-destructive">{{ error }}</p>
+
     <div class="flex items-center justify-between bg-card p-4 rounded-md">
       <h1 class="text-2xl font-semibold">Accounts payable</h1>
+
+      <!-- Diálogo: nova conta -->
       <Dialog v-model:open="dialogOpen">
         <DialogTrigger as-child>
           <Button>
@@ -196,6 +245,7 @@ function hasValidAmount(): boolean {
         </DialogContent>
       </Dialog>
 
+      <!-- Diálogo: registrar pagamento -->
       <Dialog v-model:open="payDialogOpen">
         <DialogContent class="bg-card max-w-md">
           <DialogHeader>
@@ -220,28 +270,63 @@ function hasValidAmount(): boolean {
               />
             </div>
             <div class="grid gap-2">
+              <Label for="pay-payer">Payer</Label>
+              <Input
+                id="pay-payer"
+                :model-value="payPayer"
+                type="text"
+                inputmode="decimal"
+                placeholder="John Doe"
+                @input="onPayerInput"
+              />
+            </div>
+            <div class="grid gap-2">
               <Label for="pay-period">Period</Label>
               <Popover>
                 <PopoverTrigger as-child>
                   <Button
                     :id="'pay-period'"
                     variant="outline"
-                    :class="cn(
-                      'w-full justify-start text-left font-normal',
-                      !payPeriod && 'text-muted-foreground',
-                    )"
+                    :class="
+                      cn(
+                        'w-full justify-start text-left font-normal',
+                        !payPeriod && 'text-muted-foreground',
+                      )
+                    "
                   >
                     <CalendarIcon class="mr-2 size-4 shrink-0" />
-                    {{ formatDateHyphenToSlash(payPeriod) || 'Selecione a data' }}
+                    {{ formatPeriodMonthYear(payPeriod) || 'Mês e ano' }}
                   </Button>
                 </PopoverTrigger>
-                <PopoverContent class="w-auto p-0" align="start">
-                  <Calendar
-                    :model-value="(payPeriodDate as import('reka-ui').DateValue)"
-                    :default-placeholder="(payPeriodDate as import('reka-ui').DateValue)"
-                    layout="month-and-year"
-                    @update:model-value="onPayPeriodDateChange"
-                  />
+                <PopoverContent class="w-auto p-4" align="start">
+                  <div class="flex flex-col gap-3">
+                    <div class="grid gap-2">
+                      <Label class="text-xs text-muted-foreground">Mês</Label>
+                      <Select v-model="payPeriodMonth">
+                        <SelectTrigger class="w-full">
+                          <SelectValue placeholder="Mês" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem v-for="m in MONTHS" :key="m.value" :value="m.value">
+                            {{ m.label }}
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div class="grid gap-2">
+                      <Label class="text-xs text-muted-foreground">Ano</Label>
+                      <Select v-model="payPeriodYear">
+                        <SelectTrigger class="w-full">
+                          <SelectValue placeholder="Ano" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem v-for="y in payPeriodYearOptions" :key="y" :value="String(y)">
+                            {{ y }}
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
                 </PopoverContent>
               </Popover>
             </div>
