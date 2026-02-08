@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { ChevronDown, Plus } from 'lucide-vue-next'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -43,6 +44,14 @@ const error = ref('')
 const newName = ref('')
 const newAmount = ref('')
 const newStatus = ref<PayableStatus>('unpaid')
+
+const statusConfig: Record<
+  PayableStatus,
+  { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' | 'success' }
+> = {
+  paid: { label: 'Paid', variant: 'success' },
+  unpaid: { label: 'Unpaid', variant: 'destructive' },
+}
 
 function formatPeriod(date: Date): string {
   const day = String(date.getDate()).padStart(2, '0')
@@ -157,7 +166,11 @@ async function addItem() {
             <TableCell>{{ item.payment?.payer }}</TableCell>
             <TableCell>{{ item.payment?.period }}</TableCell>
             <TableCell>{{ item.payment?.amount.toFixed(2) }}</TableCell>
-            <TableCell>{{ item.status }}</TableCell>
+            <TableCell>
+              <Badge :variant="statusConfig[item.status].variant">
+                {{ statusConfig[item.status].label }}
+              </Badge>
+            </TableCell>
             <TableCell>
               <Button variant="outline" size="sm">
                 Actions <ChevronDown class="size-4 shrink-0" />
