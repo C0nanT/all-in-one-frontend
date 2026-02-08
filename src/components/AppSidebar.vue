@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { Home, LogOut } from 'lucide-vue-next'
+import { Home, LogOut, Moon, Sun } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useTheme } from '@/composables/useTheme'
 import { Button } from '@/components/ui/button'
 import {
   Sidebar,
@@ -18,6 +19,7 @@ import {
 
 const router = useRouter()
 const authStore = useAuthStore()
+const { isDark, toggle: toggleTheme } = useTheme()
 
 const navItems = [
   {
@@ -58,6 +60,15 @@ function logout() {
       </SidebarGroup>
     </SidebarContent>
     <SidebarFooter>
+      <Button
+        variant="ghost"
+        class="w-full justify-start gap-2"
+        @click="toggleTheme"
+      >
+        <Moon v-if="!isDark" class="size-4 shrink-0" />
+        <Sun v-else class="size-4 shrink-0" />
+        <span>{{ isDark ? 'Modo claro' : 'Modo escuro' }}</span>
+      </Button>
       <Button
         variant="ghost"
         class="w-full justify-start gap-2"

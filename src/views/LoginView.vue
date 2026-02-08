@@ -42,7 +42,7 @@ async function onSubmit(e: Event) {
 </script>
 
 <template>
-  <div class="flex min-h-svh items-center justify-center p-4 bg-gray-800">
+  <div class="flex min-h-svh items-center justify-center p-4 bg-background">
     <Card class="w-full max-w-md">
       <CardHeader>
         <CardTitle>Entrar</CardTitle>
