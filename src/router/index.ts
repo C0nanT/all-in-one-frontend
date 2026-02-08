@@ -36,8 +36,13 @@ const router = createRouter({
   ],
 })
 
+const AUTH_TOKEN_KEY = 'auth_token'
+
 router.beforeEach((to) => {
   const authStore = useAuthStore()
+  if (!localStorage.getItem(AUTH_TOKEN_KEY)) {
+    authStore.logout(true)
+  }
   const requiresAuth = to.meta.requiresAuth === true
   const isPublic = to.meta.public === true
 

@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { toast } from 'vue-sonner'
 
 const baseURL = import.meta.env.VITE_API_URL as string | undefined
 
@@ -24,6 +25,15 @@ api.interceptors.response.use(
   (err) => {
     if (!axios.isAxiosError(err)) {
       return Promise.reject(err)
+    }
+    if (err.response?.status === 401) {
+      localStorage.removeItem(AUTH_TOKEN_KEY)
+      toast.error('Sessão expirada', {
+        description: 'Faça login novamente para continuar.',
+      })
+      const base = import.meta.env.BASE_URL?.replace(/\/$/, '') ?? ''
+      window.location.href = `${base}/login`
+      return Promise.reject(new Error('Sessão expirada. Faça login novamente.'))
     }
     const data = err.response?.data
     const message =

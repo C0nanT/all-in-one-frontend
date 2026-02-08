@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { toast } from 'vue-sonner'
 import { useAuthStore } from '@/stores/auth'
 import { Button } from '@/components/ui/button'
 import {
@@ -33,8 +34,10 @@ async function onSubmit(e: Event) {
     const redirect = (route.query.redirect as string) || undefined
     await router.push(redirect ? { path: redirect } : { name: 'Dashboard' })
   } catch (err: unknown) {
-    errorMessage.value =
-      err instanceof Error ? err.message : 'Error logging in. Please try again.'
+    const message =
+      err instanceof Error ? err.message : 'Login failed. Try again.'
+    errorMessage.value = message
+    toast.error('Login failed', { description: message })
   } finally {
     loading.value = false
   }

@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
+import { toast } from 'vue-sonner'
 import { login as apiLogin, register as apiRegister } from '@/api/auth'
 
 const AUTH_TOKEN_KEY = 'auth_token'
@@ -18,6 +19,9 @@ export const useAuthStore = defineStore('auth', () => {
     const { token: newToken } = await apiLogin(email, password)
     token.value = newToken
     localStorage.setItem(AUTH_TOKEN_KEY, newToken)
+    toast.success('Login successful', {
+      description: 'Welcome back.',
+    })
   }
 
   async function register(
@@ -36,9 +40,18 @@ export const useAuthStore = defineStore('auth', () => {
     localStorage.setItem(AUTH_TOKEN_KEY, newToken)
   }
 
-  function logout() {
+  function logout(unauthorized: boolean = false) {
     token.value = null
     localStorage.removeItem(AUTH_TOKEN_KEY)
+    if (unauthorized) {
+      toast.error('Unauthorized', {
+        description: 'You are not authorized to access this resource.',
+      })
+    } else {
+      toast.info('Logout successful', {
+        description: 'You have been logged out.',
+      })
+    }
   }
 
   return {
