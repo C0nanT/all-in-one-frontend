@@ -1,50 +1,50 @@
-# all-in-one-frontend
+# All-in-One Frontend
 
-This template should help get you started developing with Vue 3 in Vite.
+Interface Vue 3 do **All-in-One**: um sistema pensado para crescer indefinidamente em funcionalidades; módulos e features podem ser adicionados ao longo do tempo sem limitar a evolução do projeto.
 
-## Recommended IDE Setup
+## Backend
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+API do projeto (repositório separado):
 
-## Recommended Browser Setup
+**[all-in-one-backend](https://github.com/C0nanT/all-in-one-backend)**
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
-
-## Type Support for `.vue` Imports in TS
-
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
-
-## Customize configuration
-
-See [Vite Configuration Reference](https://vite.dev/config/).
-
-## Project Setup
+## Como rodar
 
 ```sh
 pnpm install
-```
-
-After clone/install, Git hooks are installed via the `prepare` script. On each commit, ESLint and Prettier run on staged files (pre-commit). Commit is blocked if lint or format fails.
-
-### Compile and Hot-Reload for Development
-
-```sh
 pnpm dev
 ```
 
-### Type-Check, Compile and Minify for Production
+Outros comandos úteis:
 
-```sh
-pnpm build
+- `pnpm build` — type-check + build para produção
+- `pnpm lint` — ESLint com correção automática
+- `pnpm format` — Prettier em `src/`
+- `pnpm preview` — preview do build de produção
+
+## Hooks Git (pré-commit)
+
+O projeto usa **Husky** e **lint-staged** para rodar checagens antes de cada commit:
+
+- **Pre-commit** (apenas nos arquivos em stage em `src/**/*.{vue,ts,tsx}`):
+  - ESLint com correção automática
+  - Formatação com Prettier (ajusta e re-adiciona ao stage)
+
+Para pular o hook em caso de emergência (não recomendado):
+
+```bash
+git commit --no-verify   # pula pre-commit
 ```
 
-### Lint with [ESLint](https://eslint.org/)
+## Stack
 
-```sh
-pnpm lint
-```
+- **Framework**: Vue 3 (Composition API) + TypeScript
+- **Build**: Vite 7
+- **Estilo**: Tailwind CSS v4, shadcn-vue (New York), Reka UI, Lucide
+- **Estado**: Pinia
+- **HTTP**: Axios (cliente em `src/core/api/client.ts`)
+
+## Configuração
+
+- **API**: defina `VITE_API_URL` no `.env` (veja `.env.example`).
+- **Node**: `^20.19.0` ou `>=22.12.0` (ver `engines` no `package.json`).
