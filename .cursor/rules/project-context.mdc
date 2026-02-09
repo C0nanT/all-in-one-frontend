@@ -17,29 +17,27 @@ alwaysApply: true
 - **UI**: shadcn-vue (New York style), Reka UI, Lucide icons
 - **State**: Pinia
 - **Routing**: Vue Router 4
-- **HTTP**: Axios (client in `src/api/client.ts`; interceptor returns `response.data` and normalizes errors with `message`)
+- **HTTP**: Axios (client in `src/core/api/client.ts`; interceptor returns `response.data` and normalizes errors with `message`)
 
-## Main structure
+## Main structure (MVC Modular)
 
-- `src/views/` — pages (routes)
-- `src/layouts/` — layouts (e.g. AuthenticatedLayout)
-- `src/components/` — components; `src/components/ui/` — shadcn components (Button, Card, Sheet, Sidebar, etc.)
-- `src/composables/` — composables (e.g. useTheme)
-- `src/stores/` — Pinia stores (auth, counter)
-- `src/api/` — Axios client and API modules (auth)
-- `src/router/` — routes; guard uses `meta.requiresAuth` and `meta.public`
-- `src/lib/utils.ts` — `cn()` utility (clsx + tailwind-merge)
+- `src/core/` — shared infrastructure: `api/client.ts`, `lib/` (utils, format), `composables/useTheme`, `router/`, `stores/counter`
+- `src/shared/` — shared UI: `components/ui/` (shadcn), `components/AppSidebar.vue`, `layouts/AuthenticatedLayout.vue`
+- `src/modules/<module>/` — feature modules; each has `model/` (api, store) and `view/` (Vue pages)
+  - `auth` — model: api, store; view: LoginView, RegisterView
+  - `dashboard` — view: DashboardView
+  - `accounts-payable` — model: api, users; view: AccountsPayableView
 - `src/assets/index.css` — global styles and theme
 
 ## Aliases (`@/`)
 
-- `@/components`, `@/components/ui`, `@/lib`, `@/composables` (defined in components.json and tsconfig)
+- `@/core/*`, `@/shared/*`, `@/modules/*` (tsconfig); components.json: `@/shared/components`, `@/core/lib`, `@/core/composables`
 
 ## Conventions
 
 - Vue components in PascalCase; composables with `use` prefix
-- Auth: `auth` store (token in localStorage), public vs protected routes
-- Theme: initialized in `main.ts` via `initTheme()` from `@/composables/useTheme`
+- Auth: `useAuthStore` from `@/modules/auth/model/store` (token in localStorage); public vs protected routes via `meta.requiresAuth` and `meta.public`
+- Theme: initialized in `main.ts` via `initTheme()` from `@/core/composables/useTheme`
 - New UI components: use shadcn-vue (components.json) when it makes sense
 - Env: `VITE_API_URL` for the API (see `env.d.ts` and `.env.example`)
 

@@ -19,5 +19,13 @@ export default defineConfigWithVueTs(
   ...pluginVue.configs['flat/essential'],
   vueTsConfigs.recommended,
 
+  // shadcn-vue / Reka UI components use single-word names (Button, Card, etc.)
+  {
+    files: ['src/shared/components/ui/**/*.vue'],
+    rules: {
+      'vue/multi-word-component-names': 'off',
+    },
+  },
+
   skipFormatting,
 )
