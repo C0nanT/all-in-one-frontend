@@ -1,0 +1,42 @@
+---
+description: MVC Modular architecture — where to put new code and how to import
+alwaysApply: true
+---
+
+# MVC Modular — Where to put code
+
+Follow this layout when adding or changing code.
+
+## New feature / new page
+
+1. Create a module folder: `src/modules/<feature-name>/`.
+2. Inside it:
+   - **`model/`** — API calls (using `api` from `@/core/api/client`), types, and Pinia store if the feature has its own state.
+   - **`view/`** — Vue page components (one file per route/screen).
+3. Register the route in `src/core/router/index.ts`: add a route with `component: () => import('@/modules/<feature-name>/view/<ViewName>.vue')`.
+4. If the page is under the authenticated layout, add it as a child of the route that uses `AuthenticatedLayout.vue`.
+
+## New API or store for an existing feature
+
+- Put API functions and types in `src/modules/<module>/model/` (e.g. `api.ts` or a new file). Always import the Axios client from `@/core/api/client`.
+- Put the Pinia store in `src/modules/<module>/model/store.ts` and import it as `@/modules/<module>/model/store`.
+
+## New shared UI component or layout
+
+- **shadcn-vue primitives** (Button, Input, Dialog, etc.): add via CLI so they go to `src/shared/components/ui/`. Use aliases from components.json (`@/shared/components`, `@/core/lib`, etc.).
+- **App-specific shared components** (e.g. sidebar, layout): `src/shared/components/` or `src/shared/layouts/`.
+- In any Vue file, import UI from `@/shared/components/ui/...` and layouts from `@/shared/layouts/...`.
+
+## Global infrastructure (used by many modules)
+
+- **HTTP client**: only `src/core/api/client.ts`; do not create per-module Axios instances.
+- **Utils / formatters**: `src/core/lib/` (e.g. `utils.ts`, `format.ts`).
+- **Composables used app-wide**: `src/core/composables/` (e.g. `useTheme.ts`).
+- **Router**: single file `src/core/router/index.ts`; all routes and guards live here.
+- **Global Pinia stores** (rare): `src/core/stores/`.
+
+## Import checklist
+
+- From a **view** (page): import model from `@/modules/<module>/model/...`, UI from `@/shared/components/ui/...`, layouts from `@/shared/layouts/...`, utils from `@/core/lib/...`.
+- From a **model** (api/store): import client from `@/core/api/client`; do not import from other modules unless necessary.
+- From **router**: import store from `@/modules/auth/model/store`; use `@/modules/<module>/view/<Name>.vue` and `@/shared/layouts/...` for `component: () => import(...)`.

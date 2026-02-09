@@ -17,31 +17,47 @@ alwaysApply: true
 - **UI**: shadcn-vue (New York style), Reka UI, Lucide icons
 - **State**: Pinia
 - **Routing**: Vue Router 4
-- **HTTP**: Axios (client in `src/api/client.ts`; interceptor returns `response.data` and normalizes errors with `message`)
+- **HTTP**: Axios (client in `src/core/api/client.ts`; interceptor returns `response.data` and normalizes errors with `message`)
 
-## Main structure
+## Main structure (MVC Modular)
 
-- `src/views/` — pages (routes)
-- `src/layouts/` — layouts (e.g. AuthenticatedLayout)
-- `src/components/` — components; `src/components/ui/` — shadcn components (Button, Card, Sheet, Sidebar, etc.)
-- `src/composables/` — composables (e.g. useTheme)
-- `src/stores/` — Pinia stores (auth, counter)
-- `src/api/` — Axios client and API modules (auth)
-- `src/router/` — routes; guard uses `meta.requiresAuth` and `meta.public`
-- `src/lib/utils.ts` — `cn()` utility (clsx + tailwind-merge)
-- `src/assets/index.css` — global styles and theme
+- **`src/core/`** — Infrastructure used by the whole app (no feature-specific logic).
+  - `core/api/client.ts` — Axios instance; all module APIs import from here.
+  - `core/lib/` — `utils.ts` (`cn()`), `format.ts` (dates, money).
+  - `core/composables/` — e.g. `useTheme.ts`.
+  - `core/router/index.ts` — single router; lazy-imports views from `@/modules/*/view/*`.
+  - `core/stores/` — global stores only (e.g. counter); feature stores live in `modules/<name>/model/store.ts`.
+- **`src/shared/`** — UI shared across modules.
+  - `shared/components/ui/` — shadcn-vue components (Button, Card, Dialog, etc.).
+  - `shared/components/AppSidebar.vue` — app sidebar.
+  - `shared/layouts/` — e.g. `AuthenticatedLayout.vue`.
+- **`src/modules/<module>/`** — One folder per feature; each has `model/` and optionally `view/`.
+  - `model/` — API functions (import `api` from `@/core/api/client`), Pinia store if needed, types.
+  - `view/` — Vue page components (routes reference them via `@/modules/<module>/view/...`).
+  - Current modules: `auth`, `dashboard`, `accounts-payable`.
+- **`src/assets/index.css`** — Global styles and theme.
+
+## Imports (always use these paths)
+
+- UI: `@/shared/components/ui/...`, `@/shared/components/AppSidebar.vue`, `@/shared/layouts/...`
+- Core: `@/core/api/client`, `@/core/lib/utils`, `@/core/lib/format`, `@/core/composables/useTheme`, `@/core/router`
+- Auth: `@/modules/auth/model/store`, `@/modules/auth/model/api`
+- Other modules: `@/modules/<module>/model/...`, `@/modules/<module>/view/...`
+- Do not use old paths: `@/components`, `@/views`, `@/api`, `@/stores`, `@/lib`, `@/composables`, `@/layouts` (they no longer exist).
 
 ## Aliases (`@/`)
 
-- `@/components`, `@/components/ui`, `@/lib`, `@/composables` (defined in components.json and tsconfig)
+- Tsconfig: `@/*` → `./src/*` (so `@/core/...`, `@/shared/...`, `@/modules/...` work).
+- components.json (shadcn): `components` → `@/shared/components`, `ui` → `@/shared/components/ui`, `lib` → `@/core/lib`, `composables` → `@/core/composables`.
 
 ## Conventions
 
-- Vue components in PascalCase; composables with `use` prefix
-- Auth: `auth` store (token in localStorage), public vs protected routes
-- Theme: initialized in `main.ts` via `initTheme()` from `@/composables/useTheme`
-- New UI components: use shadcn-vue (components.json) when it makes sense
-- Env: `VITE_API_URL` for the API (see `env.d.ts` and `.env.example`)
+- Vue components in PascalCase; composables with `use` prefix.
+- New feature: add a new folder under `src/modules/<name>/` with `model/` (and `view/` if it has a page); register the route in `core/router/index.ts` and lazy-import the view from `@/modules/<name>/view/...`.
+- Auth: `useAuthStore` from `@/modules/auth/model/store`; routes use `meta.requiresAuth` and `meta.public`.
+- Theme: `initTheme()` from `@/core/composables/useTheme` in `main.ts`.
+- New UI primitives: add via shadcn-vue (components.json) so they go to `shared/components/ui/`.
+- Env: `VITE_API_URL` for the API (see `env.d.ts` and `.env.example`).
 
 ## Scripts
 
