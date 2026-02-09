@@ -1,47 +1,51 @@
 ---
-description: Contexto do projeto all-in-one-frontend para o Cursor
+description: Project context for all-in-one-frontend (Cursor)
 alwaysApply: true
 ---
 
-# Contexto do Projeto: all-in-one-frontend
+# Project Context: all-in-one-frontend
+
+## Code language
+
+- **Generated code is always in English**, never in Portuguese: variable names, function names, comments, strings in the UI, log messages, and any other code or copy produced by the AI must be written in English, even when the user's instructions are in Portuguese.
 
 ## Stack
 
 - **Framework**: Vue 3 (Composition API) + TypeScript
 - **Build**: Vite 7
-- **Estilo**: Tailwind CSS v4, CSS variables (slate base), tw-animate-css
-- **UI**: shadcn-vue (estilo New York), Reka UI, ícones Lucide
-- **Estado**: Pinia
-- **Roteamento**: Vue Router 4
-- **HTTP**: Axios (cliente em `src/api/client.ts`; interceptor devolve `response.data` e normaliza erros com `message`)
+- **Styling**: Tailwind CSS v4, CSS variables (slate base), tw-animate-css
+- **UI**: shadcn-vue (New York style), Reka UI, Lucide icons
+- **State**: Pinia
+- **Routing**: Vue Router 4
+- **HTTP**: Axios (client in `src/api/client.ts`; interceptor returns `response.data` and normalizes errors with `message`)
 
-## Estrutura principal
+## Main structure
 
-- `src/views/` — páginas (rotas)
-- `src/layouts/` — layouts (ex.: AuthenticatedLayout)
-- `src/components/` — componentes; `src/components/ui/` — componentes shadcn (Button, Card, Sheet, Sidebar, etc.)
-- `src/composables/` — composables (ex.: useTheme)
-- `src/stores/` — stores Pinia (auth, counter)
-- `src/api/` — cliente Axios e módulos de API (auth)
-- `src/router/` — rotas; guard usa `meta.requiresAuth` e `meta.public`
-- `src/lib/utils.ts` — utilitário `cn()` (clsx + tailwind-merge)
-- `src/assets/index.css` — estilos globais e tema
+- `src/views/` — pages (routes)
+- `src/layouts/` — layouts (e.g. AuthenticatedLayout)
+- `src/components/` — components; `src/components/ui/` — shadcn components (Button, Card, Sheet, Sidebar, etc.)
+- `src/composables/` — composables (e.g. useTheme)
+- `src/stores/` — Pinia stores (auth, counter)
+- `src/api/` — Axios client and API modules (auth)
+- `src/router/` — routes; guard uses `meta.requiresAuth` and `meta.public`
+- `src/lib/utils.ts` — `cn()` utility (clsx + tailwind-merge)
+- `src/assets/index.css` — global styles and theme
 
 ## Aliases (`@/`)
 
-- `@/components`, `@/components/ui`, `@/lib`, `@/composables` (definidos em components.json e tsconfig)
+- `@/components`, `@/components/ui`, `@/lib`, `@/composables` (defined in components.json and tsconfig)
 
-## Convenções
+## Conventions
 
-- Componentes Vue em PascalCase; composables com prefixo `use`
-- Autenticação: store `auth` (token em localStorage), rotas públicas vs protegidas
-- Tema: inicializado em `main.ts` via `initTheme()` de `@/composables/useTheme`
-- Novos componentes UI: usar shadcn-vue (components.json) quando fizer sentido
-- Variável de ambiente: `VITE_API_URL` para a API (ver `env.d.ts` e `.env.example`)
+- Vue components in PascalCase; composables with `use` prefix
+- Auth: `auth` store (token in localStorage), public vs protected routes
+- Theme: initialized in `main.ts` via `initTheme()` from `@/composables/useTheme`
+- New UI components: use shadcn-vue (components.json) when it makes sense
+- Env: `VITE_API_URL` for the API (see `env.d.ts` and `.env.example`)
 
 ## Scripts
 
-- `pnpm dev` — desenvolvimento
+- `pnpm dev` — development
 - `pnpm build` — type-check + build
-- `pnpm lint` — ESLint com fix
-- `pnpm format` — Prettier em `src/`
+- `pnpm lint` — ESLint with fix
+- `pnpm format` — Prettier on `src/`
