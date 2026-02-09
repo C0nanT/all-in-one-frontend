@@ -29,6 +29,8 @@ See [Vite Configuration Reference](https://vite.dev/config/).
 pnpm install
 ```
 
+After clone/install, Git hooks are installed via the `prepare` script. On each commit, ESLint and Prettier run on staged files (pre-commit). Commit is blocked if lint or format fails.
+
 ### Compile and Hot-Reload for Development
 
 ```sh

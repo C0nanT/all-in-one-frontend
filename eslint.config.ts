@@ -27,5 +27,13 @@ export default defineConfigWithVueTs(
     },
   },
 
+  // Avoid forgotten code (console.log, debugger) — both block commit
+  {
+    rules: {
+      'no-console': 'error',
+      'no-debugger': 'error',
+    },
+  },
+
   skipFormatting,
 )
