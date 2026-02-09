@@ -10,6 +10,7 @@ import {
   type PayableAccount,
   type PayableStatus,
 } from '@/api/payableAccounts'
+import { fetchUsers, type User } from '@/api/users'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -98,6 +99,8 @@ const payFormAccount = ref<PayableAccount | null>(null)
 const payAmount = ref('')
 const payPayer = ref('')
 const payingId = ref<number | null>(null)
+const users = ref<User[]>([])
+const usersLoading = ref(false)
 
 const now = new Date()
 const payPeriod = ref(`01-${String(now.getMonth() + 1).padStart(2, '0')}-${now.getFullYear()}`)
@@ -172,12 +175,14 @@ function onEdit(_item: PayableAccount) {
 function openPayDialog(item: PayableAccount) {
   payFormAccount.value = item
   payAmount.value = ''
+  payPayer.value = ''
   const d = new Date()
   payPeriod.value = `01-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`
   payPeriodMonth.value = String(d.getMonth() + 1).padStart(2, '0')
   payPeriodYear.value = String(d.getFullYear())
   payDialogOpen.value = true
   dropdownOpenId.value = null
+  loadUsers()
 }
 
 function onAmountInput(e: Event) {
@@ -186,21 +191,46 @@ function onAmountInput(e: Event) {
   payAmount.value = formatMoneyBR(digits)
 }
 
-function onPayerInput(e: Event) {
-  const target = e.target as HTMLInputElement
-  payPayer.value = target.value
+async function loadUsers() {
+  usersLoading.value = true
+  payPayer.value = ''
+  try {
+    users.value = await fetchUsers()
+    const first = users.value[0]
+    if (first) {
+      payPayer.value = String(first.id)
+    }
+  } catch {
+    users.value = []
+  } finally {
+    usersLoading.value = false
+  }
 }
 
 function hasValidAmount(): boolean {
   return parseMoneyBR(payAmount.value) > 0
 }
 
+function hasValidPayer(): boolean {
+  return !!payPayer.value && users.value.some((u) => String(u.id) === payPayer.value)
+}
+
 async function submitPayForm() {
   const amount = parseMoneyBR(payAmount.value)
   if (!payFormAccount.value || amount <= 0) return
+  const selectedUser = users.value.find((u) => String(u.id) === payPayer.value)
+  if (!selectedUser) {
+    toast.error('Please select a payer')
+    return
+  }
   payingId.value = payFormAccount.value.id
   try {
-    await payPayableAccount(payFormAccount.value.id, amount, periodWithFirstDay(payPeriod.value))
+    await payPayableAccount(
+      payFormAccount.value.id,
+      amount,
+      periodWithFirstDay(payPeriod.value),
+      selectedUser.id,
+    )
     payDialogOpen.value = false
     payFormAccount.value = null
     items.value = await fetchPayableAccounts(getFormattedDate())
@@ -249,14 +279,14 @@ async function submitPayForm() {
       <Dialog v-model:open="payDialogOpen">
         <DialogContent class="bg-card max-w-md">
           <DialogHeader>
-            <DialogTitle>Registrar pagamento</DialogTitle>
+            <DialogTitle>Register payment</DialogTitle>
           </DialogHeader>
           <form class="grid gap-4 py-4" @submit.prevent="submitPayForm">
-            <div class="grid gap-2">
-              <Label>Conta</Label>
-              <p class="text-sm text-muted-foreground py-2">
+            <div class="grid gap-2 text-center text-lg">
+              <Label class="mx-auto text-lg">Account</Label>
+              <strong class="text-lg py-2 px-6 bg-muted rounded-md w-fit mx-auto">
                 {{ payFormAccount?.name }}
-              </p>
+              </strong>
             </div>
             <div class="grid gap-2">
               <Label for="pay-amount">Amount</Label>
@@ -271,14 +301,16 @@ async function submitPayForm() {
             </div>
             <div class="grid gap-2">
               <Label for="pay-payer">Payer</Label>
-              <Input
-                id="pay-payer"
-                :model-value="payPayer"
-                type="text"
-                inputmode="decimal"
-                placeholder="John Doe"
-                @input="onPayerInput"
-              />
+              <Select v-model="payPayer" :disabled="usersLoading">
+                <SelectTrigger id="pay-payer" class="w-full">
+                  <SelectValue :placeholder="usersLoading ? 'Loading…' : 'Select payer'" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="u in users" :key="u.id" :value="String(u.id)">
+                    {{ u.name }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div class="grid gap-2">
               <Label for="pay-period">Period</Label>
@@ -333,10 +365,10 @@ async function submitPayForm() {
             <DialogFooter>
               <Button
                 type="submit"
-                class="mx-auto"
-                :disabled="!hasValidAmount() || payingId !== null"
+                class="mx-auto px-8"
+                :disabled="!hasValidAmount() || !hasValidPayer() || payingId !== null"
               >
-                {{ payingId !== null ? 'Registrando…' : 'Pagar' }}
+                {{ payingId !== null ? 'Registering…' : 'Pay' }}
               </Button>
             </DialogFooter>
           </form>
@@ -387,8 +419,8 @@ async function submitPayForm() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                  <DropdownMenuItem @select="onEdit(item)"> Editar </DropdownMenuItem>
-                  <DropdownMenuItem @select="openPayDialog(item)"> Pagar </DropdownMenuItem>
+                  <DropdownMenuItem @select="onEdit(item)"> Edit </DropdownMenuItem>
+                  <DropdownMenuItem @select="openPayDialog(item)"> Pay </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </TableCell>

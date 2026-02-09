@@ -29,8 +29,9 @@ export async function payPayableAccount(
   id: number,
   amount: number,
   period: string,
+  payer_id: number,
 ): Promise<PayableAccount> {
-  const res = (await api.post(`payable-accounts/${id}/payments`, { amount, period })) as {
+  const res = (await api.post(`payable-accounts/${id}/payments`, { amount, period, payer_id })) as {
     data: PayableAccount
   }
   return res.data
