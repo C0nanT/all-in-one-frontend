@@ -457,7 +457,9 @@ async function submitPayForm() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                  <DropdownMenuItem @select="onEdit(item)"> Edit </DropdownMenuItem>
+                  <DropdownMenuItem v-if="item.status === 'paid'" @select="onEdit(item)">
+                    Edit
+                  </DropdownMenuItem>
                   <DropdownMenuItem v-if="item.status !== 'paid'" @select="openPayDialog(item)">
                     Pay
                   </DropdownMenuItem>
