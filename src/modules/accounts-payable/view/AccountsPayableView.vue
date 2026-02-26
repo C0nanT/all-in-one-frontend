@@ -7,6 +7,7 @@ import {
   fetchPayableAccounts,
   createPayableAccount,
   payPayableAccount,
+  updatePayableAccountPayment,
   type PayableAccount,
   type PayableStatus,
 } from '@/modules/accounts-payable/model/api'
@@ -108,6 +109,16 @@ const payPeriod = ref(`01-${String(now.getMonth() + 1).padStart(2, '0')}-${now.g
 const payPeriodMonth = ref(String(now.getMonth() + 1).padStart(2, '0'))
 const payPeriodYear = ref(String(now.getFullYear()))
 
+// --- Estado: diálogo editar pagamento ---
+
+const editDialogOpen = ref(false)
+const editFormAccount = ref<PayableAccount | null>(null)
+const editAmount = ref('')
+const editPayer = ref('')
+const editPeriodMonth = ref('')
+const editPeriodYear = ref('')
+const editingId = ref<number | null>(null)
+
 // --- Estado: UI (dropdown) ---
 
 const dropdownOpenId = ref<number | null>(null)
@@ -117,6 +128,13 @@ const dropdownOpenId = ref<number | null>(null)
 const payPeriodYearOptions = computed(() => {
   const y = new Date().getFullYear()
   return Array.from({ length: 11 }, (_, i) => y - 5 + i)
+})
+
+const editPeriod = computed(() => {
+  if (editPeriodMonth.value && editPeriodYear.value) {
+    return `01-${editPeriodMonth.value}-${editPeriodYear.value}`
+  }
+  return ''
 })
 
 // --- Watchers ---
@@ -131,6 +149,16 @@ watch(payDialogOpen, (open) => {
     if (parts.length === 3) {
       payPeriodMonth.value = parts[1] ?? payPeriodMonth.value
       payPeriodYear.value = parts[2] ?? payPeriodYear.value
+    }
+  }
+})
+
+watch(editDialogOpen, (open) => {
+  if (open && editFormAccount.value?.payment?.period) {
+    const parts = editFormAccount.value.payment.period.split('-')
+    if (parts.length === 3) {
+      editPeriodMonth.value = parts[1] ?? ''
+      editPeriodYear.value = parts[2] ?? ''
     }
   }
 })
@@ -190,9 +218,63 @@ async function addItem() {
   }
 }
 
-// TODO: navigate to edit route/modal when available
-function onEdit(_item: PayableAccount) {
-  void _item
+function openEditDialog(item: PayableAccount) {
+  if (!item.payment?.id) return
+  editFormAccount.value = item
+  const amountCents = Math.round(item.payment.amount * 100)
+  editAmount.value = formatMoneyBR(String(amountCents))
+  editPayer.value = item.payment.payer_id != null ? String(item.payment.payer_id) : ''
+  const parts = item.payment.period.split('-')
+  if (parts.length === 3) {
+    editPeriodMonth.value = parts[1] ?? ''
+    editPeriodYear.value = parts[2] ?? ''
+  }
+  editDialogOpen.value = true
+  dropdownOpenId.value = null
+  void loadUsers()
+}
+
+function onEditAmountInput(e: Event) {
+  const target = e.target as HTMLInputElement
+  const digits = target.value.replace(/\D/g, '')
+  editAmount.value = formatMoneyBR(digits)
+}
+
+function hasValidEditAmount(): boolean {
+  return parseMoneyBR(editAmount.value) > 0
+}
+
+function hasValidEditPayer(): boolean {
+  return !!editPayer.value && users.value.some((u) => String(u.id) === editPayer.value)
+}
+
+async function submitEditForm() {
+  if (!editFormAccount.value?.payment?.id || !editPeriod.value) return
+  const amount = parseMoneyBR(editAmount.value)
+  if (amount <= 0) return
+  const selectedUser = users.value.find((u) => String(u.id) === editPayer.value)
+  if (!selectedUser) {
+    toast.error('Please select a payer')
+    return
+  }
+  editingId.value = editFormAccount.value.id
+  try {
+    await updatePayableAccountPayment(
+      editFormAccount.value.id,
+      editFormAccount.value.payment.id,
+      amount,
+      editPeriod.value,
+      selectedUser.id,
+    )
+    toast.success('Payment updated')
+    editDialogOpen.value = false
+    editFormAccount.value = null
+    await loadList()
+  } catch (e) {
+    toast.error(e instanceof Error ? e.message : 'Failed to update payment')
+  } finally {
+    editingId.value = null
+  }
 }
 
 // --- Ações: pagar ---
@@ -218,12 +300,16 @@ function onAmountInput(e: Event) {
 
 async function loadUsers() {
   usersLoading.value = true
-  payPayer.value = ''
   try {
     users.value = await fetchUsers()
-    const first = users.value[0]
-    if (first) {
-      payPayer.value = String(first.id)
+    if (payDialogOpen.value) {
+      const first = users.value[0]
+      if (first) payPayer.value = String(first.id)
+    }
+    if (editDialogOpen.value && editFormAccount.value && !editPayer.value) {
+      const payerId = editFormAccount.value.payment?.payer_id
+      editPayer.value =
+        payerId != null ? String(payerId) : users.value[0] ? String(users.value[0].id) : ''
     }
   } catch {
     users.value = []
@@ -412,6 +498,106 @@ async function submitPayForm() {
           </form>
         </DialogContent>
       </Dialog>
+
+      <!-- Diálogo: editar pagamento -->
+      <Dialog v-model:open="editDialogOpen">
+        <DialogContent class="bg-card max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit payment</DialogTitle>
+          </DialogHeader>
+          <form class="grid gap-4 py-4" @submit.prevent="submitEditForm">
+            <div class="grid gap-2 text-center text-lg">
+              <Label class="mx-auto text-lg">Account</Label>
+              <strong class="text-lg py-2 px-6 bg-muted rounded-md w-fit mx-auto">
+                {{ editFormAccount?.name }}
+              </strong>
+            </div>
+            <div class="grid gap-2">
+              <Label for="edit-amount">Amount</Label>
+              <Input
+                id="edit-amount"
+                :model-value="editAmount"
+                type="text"
+                inputmode="decimal"
+                placeholder="R$ 0,00"
+                @input="onEditAmountInput"
+              />
+            </div>
+            <div class="grid gap-2">
+              <Label for="edit-payer">Payer</Label>
+              <Select v-model="editPayer" :disabled="usersLoading">
+                <SelectTrigger id="edit-payer" class="w-full">
+                  <SelectValue :placeholder="usersLoading ? 'Loading…' : 'Select payer'" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem v-for="u in users" :key="u.id" :value="String(u.id)">
+                    {{ u.name }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div class="grid gap-2">
+              <Label for="edit-period">Period</Label>
+              <Popover>
+                <PopoverTrigger as-child>
+                  <Button
+                    :id="'edit-period'"
+                    variant="outline"
+                    :class="
+                      cn(
+                        'w-full justify-start text-left font-normal',
+                        !editPeriod && 'text-muted-foreground',
+                      )
+                    "
+                  >
+                    <CalendarIcon class="mr-2 size-4 shrink-0" />
+                    {{ formatPeriodMonthYear(editPeriod) || 'Mês e ano' }}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent class="w-auto p-4" align="start">
+                  <div class="flex flex-col gap-3">
+                    <div class="grid gap-2">
+                      <Label class="text-xs text-muted-foreground">Mês</Label>
+                      <Select v-model="editPeriodMonth">
+                        <SelectTrigger class="w-full">
+                          <SelectValue placeholder="Mês" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem v-for="m in MONTHS" :key="m.value" :value="m.value">
+                            {{ m.label }}
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div class="grid gap-2">
+                      <Label class="text-xs text-muted-foreground">Ano</Label>
+                      <Select v-model="editPeriodYear">
+                        <SelectTrigger class="w-full">
+                          <SelectValue placeholder="Ano" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem v-for="y in payPeriodYearOptions" :key="y" :value="String(y)">
+                            {{ y }}
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </PopoverContent>
+              </Popover>
+            </div>
+            <DialogFooter>
+              <Button
+                type="submit"
+                class="mx-auto px-8"
+                :disabled="!hasValidEditAmount() || !hasValidEditPayer() || editingId !== null"
+              >
+                {{ editingId !== null ? 'Saving…' : 'Save' }}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
 
     <div class="rounded-md border mt-4 w-1/2 ms-auto">
@@ -457,7 +643,7 @@ async function submitPayForm() {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                  <DropdownMenuItem v-if="item.status === 'paid'" @select="onEdit(item)">
+                  <DropdownMenuItem v-if="item.status === 'paid'" @select="openEditDialog(item)">
                     Edit
                   </DropdownMenuItem>
                   <DropdownMenuItem v-if="item.status !== 'paid'" @select="openPayDialog(item)">
