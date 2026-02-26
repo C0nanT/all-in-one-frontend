@@ -27,7 +27,7 @@ const router = createRouter({
           component: () => import('@/modules/dashboard/view/DashboardView.vue'),
         },
         {
-          path: 'contas-a-pagar',
+          path: 'accounts-payable',
           name: 'AccountsPayable',
           component: () => import('@/modules/accounts-payable/view/AccountsPayableView.vue'),
         },

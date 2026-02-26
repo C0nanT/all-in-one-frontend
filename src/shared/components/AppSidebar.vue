@@ -29,7 +29,7 @@ const navItems = [
   },
   {
     title: 'Accounts payable',
-    to: '/contas-a-pagar',
+    to: '/accounts-payable',
     icon: DollarSign,
   },
 ]
