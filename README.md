@@ -10,10 +10,16 @@ API do projeto (repositório separado):
 
 ## Como rodar
 
+### Local
+
 ```sh
 pnpm install
 pnpm dev
 ```
+
+### Docker
+
+- **Desenvolvimento com hot reload**: `docker compose up app-dev` ou `make dev-docker` — alterações no código atualizam automaticamente no browser em `http://localhost:5173`.
 
 Outros comandos úteis:
 

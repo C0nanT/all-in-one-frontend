@@ -1,7 +1,12 @@
 services:
-  app:
-    build: .
-    image: ai1-frontend:latest
+  app-dev:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.dev
+    image: ai1-frontend:dev
     ports:
-      - "8080:80"
-    restart: unless-stopped
+      - '5173:5173'
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: pnpm dev

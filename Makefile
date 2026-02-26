@@ -1,34 +1,15 @@
-APP_NAME := all-in-one-frontend
-TAG := latest
-IMAGE := $(APP_NAME):$(TAG)
-PORT := 8080
 
-.PHONY: build run stop clean logs dev install lint format type-check
+.PHONY: logs up lint format type-check
 
 # -------- Docker --------
 
-build:
-	docker build -t $(IMAGE) .
-
-run: build
-	docker run -d --name $(APP_NAME) -p $(PORT):80 $(IMAGE)
-
-stop:
-	docker stop $(APP_NAME) && docker rm $(APP_NAME)
+up:
+	docker compose up -d app-dev
 
 logs:
-	docker logs -f $(APP_NAME)
+	docker compose logs -f app-dev
 
-clean:
-	docker rmi $(IMAGE)
-
-# -------- Local dev --------
-
-install:
-	pnpm install
-
-dev:
-	pnpm dev
+# -------- Scripts --------
 
 lint:
 	pnpm lint
