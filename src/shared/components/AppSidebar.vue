@@ -65,20 +65,12 @@ function logout() {
       </SidebarGroup>
     </SidebarContent>
     <SidebarFooter>
-      <Button
-        variant="ghost"
-        class="w-full justify-start gap-2"
-        @click="toggleTheme"
-      >
+      <Button variant="ghost" class="w-full justify-start gap-2" @click="toggleTheme">
         <Moon v-if="!isDark" class="size-4 shrink-0" />
         <Sun v-else class="size-4 shrink-0" />
         <span>{{ isDark ? 'Light mode' : 'Dark mode' }}</span>
       </Button>
-      <Button
-        variant="ghost"
-        class="w-full justify-start gap-2"
-        @click="logout"
-      >
+      <Button variant="ghost" class="w-full justify-start gap-2" @click="logout">
         <LogOut class="size-4 shrink-0" />
         <span>Log out</span>
       </Button>

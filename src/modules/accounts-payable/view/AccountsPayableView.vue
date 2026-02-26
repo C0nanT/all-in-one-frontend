@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, computed } from 'vue'
 import { toast } from 'vue-sonner'
-import { CalendarIcon, ChevronDown, Plus } from 'lucide-vue-next'
+import { CalendarIcon, ChevronDown, ChevronLeft, ChevronRight, Plus } from 'lucide-vue-next'
 
 import {
   fetchPayableAccounts,
@@ -85,6 +85,7 @@ const statusConfig: Record<
 const items = ref<PayableAccount[]>([])
 const loading = ref(false)
 const error = ref('')
+const listPeriod = ref(periodWithFirstDay(getFormattedDate()))
 
 // --- Estado: diálogo criar conta ---
 
@@ -136,16 +137,39 @@ watch(payDialogOpen, (open) => {
 
 // --- Ações: carregar lista ---
 
-onMounted(async () => {
+async function loadList(period?: string): Promise<void> {
+  const targetPeriod = period ?? listPeriod.value
   loading.value = true
   error.value = ''
   try {
-    items.value = await fetchPayableAccounts(getFormattedDate())
+    items.value = await fetchPayableAccounts(targetPeriod)
   } catch (e) {
     error.value = e instanceof Error ? e.message : 'Failed to load accounts'
   } finally {
     loading.value = false
   }
+}
+
+function prevMonth(): void {
+  const parts = listPeriod.value.split('-')
+  if (parts.length !== 3) return
+  const [, month, year] = parts
+  const date = new Date(Number(year), Number(month) - 1 - 1, 1)
+  listPeriod.value = `01-${String(date.getMonth() + 1).padStart(2, '0')}-${date.getFullYear()}`
+  void loadList()
+}
+
+function nextMonth(): void {
+  const parts = listPeriod.value.split('-')
+  if (parts.length !== 3) return
+  const [, month, year] = parts
+  const date = new Date(Number(year), Number(month) - 1 + 1, 1)
+  listPeriod.value = `01-${String(date.getMonth() + 1).padStart(2, '0')}-${date.getFullYear()}`
+  void loadList()
+}
+
+onMounted(() => {
+  void loadList()
 })
 
 // --- Ações: criar conta ---
@@ -234,7 +258,7 @@ async function submitPayForm() {
     )
     payDialogOpen.value = false
     payFormAccount.value = null
-    items.value = await fetchPayableAccounts(getFormattedDate())
+    await loadList()
   } catch (e) {
     toast.error(e instanceof Error ? e.message : 'Failed to register payment')
   } finally {
@@ -248,7 +272,20 @@ async function submitPayForm() {
     <p v-if="error" class="text-sm text-destructive">{{ error }}</p>
 
     <div class="flex items-center justify-between bg-card p-4 rounded-md">
-      <h1 class="text-2xl font-semibold">Accounts payable</h1>
+      <div class="flex items-center gap-4">
+        <h1 class="text-2xl font-semibold">Accounts payable</h1>
+        <div class="flex items-center gap-1">
+          <Button variant="ghost" size="icon-sm" @click="prevMonth">
+            <ChevronLeft class="size-4" />
+          </Button>
+          <span class="min-w-20 text-center font-medium tabular-nums">
+            {{ formatPeriodMonthYear(listPeriod) }}
+          </span>
+          <Button variant="ghost" size="icon-sm" @click="nextMonth">
+            <ChevronRight class="size-4" />
+          </Button>
+        </div>
+      </div>
 
       <!-- Diálogo: nova conta -->
       <Dialog v-model:open="dialogOpen">
