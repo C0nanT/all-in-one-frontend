@@ -7,6 +7,8 @@ export interface PayableAccount {
   name: string
   status: PayableStatus
   payment: {
+    id?: number
+    payer_id?: number
     payer: string
     amount: number
     period: string
@@ -35,4 +37,18 @@ export async function payPayableAccount(
     data: PayableAccount
   }
   return res.data
+}
+
+export async function updatePayableAccountPayment(
+  accountId: number,
+  paymentId: number,
+  amount: number,
+  period: string,
+  payer_id: number,
+): Promise<void> {
+  await api.put(`payable-accounts/${accountId}/payments/${paymentId}`, {
+    amount,
+    period,
+    payer_id,
+  })
 }
