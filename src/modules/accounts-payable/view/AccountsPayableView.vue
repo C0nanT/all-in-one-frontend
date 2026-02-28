@@ -359,8 +359,10 @@ async function submitPayForm() {
 
     <div class="flex items-center justify-between bg-card p-4 rounded-md">
       <div class="flex items-center gap-4">
-        <h1 class="text-2xl font-semibold">Accounts payable</h1>
-        <div class="flex items-center gap-1">
+        <h1 class="text-2xl font-semibold" data-testid="accounts-payable-title">
+          Accounts payable
+        </h1>
+        <div class="flex items-center gap-1" data-testid="accounts-payable-period-selector">
           <Button variant="ghost" size="icon-sm" @click="prevMonth">
             <ChevronLeft class="size-4" />
           </Button>
@@ -376,7 +378,7 @@ async function submitPayForm() {
       <!-- Diálogo: nova conta -->
       <Dialog v-model:open="dialogOpen">
         <DialogTrigger as-child>
-          <Button>
+          <Button data-testid="accounts-payable-add-button">
             Add
             <Plus class="size-4 shrink-0" />
           </Button>
@@ -600,7 +602,7 @@ async function submitPayForm() {
       </Dialog>
     </div>
 
-    <div class="rounded-md border mt-4 w-1/2 ms-auto">
+    <div class="rounded-md border mt-4 w-1/2 ms-auto" data-testid="accounts-payable-table">
       <Table>
         <TableHeader class="bg-card">
           <TableRow>
