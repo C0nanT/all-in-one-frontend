@@ -73,6 +73,22 @@ const MONTHS = [
   { value: "12", label: "Dezembro" },
 ]
 
+const MIN_PERIOD_YEAR = 2025
+const MIN_PERIOD_MONTH = 9
+const MIN_PERIOD_STR = "01-09-2025"
+
+function clampPeriodToMin(period: string): string {
+  const parts = period.split("-")
+  if (parts.length !== 3) return period
+  const [, month, year] = parts
+  const y = Number(year)
+  const m = Number(month)
+  if (y < MIN_PERIOD_YEAR || (y === MIN_PERIOD_YEAR && m < MIN_PERIOD_MONTH)) {
+    return MIN_PERIOD_STR
+  }
+  return period
+}
+
 const statusConfig: Record<
   PayableStatus,
   { label: string; variant: "default" | "secondary" | "destructive" | "outline" | "success" }
@@ -86,7 +102,7 @@ const statusConfig: Record<
 const items = ref<PayableAccount[]>([])
 const loading = ref(false)
 const error = ref("")
-const listPeriod = ref(periodWithFirstDay(getFormattedDate()))
+const listPeriod = ref(clampPeriodToMin(periodWithFirstDay(getFormattedDate())))
 
 // --- Estado: diálogo criar conta ---
 
@@ -105,9 +121,12 @@ const users = ref<User[]>([])
 const usersLoading = ref(false)
 
 const now = new Date()
-const payPeriod = ref(`01-${String(now.getMonth() + 1).padStart(2, "0")}-${now.getFullYear()}`)
-const payPeriodMonth = ref(String(now.getMonth() + 1).padStart(2, "0"))
-const payPeriodYear = ref(String(now.getFullYear()))
+const initialPayRaw = `01-${String(now.getMonth() + 1).padStart(2, "0")}-${now.getFullYear()}`
+const initialPayClamped = clampPeriodToMin(initialPayRaw)
+const initialPayParts = initialPayClamped.split("-")
+const payPeriod = ref(initialPayClamped)
+const payPeriodMonth = ref(initialPayParts[1] ?? String(now.getMonth() + 1).padStart(2, "0"))
+const payPeriodYear = ref(initialPayParts[2] ?? String(now.getFullYear()))
 
 // --- Estado: diálogo editar pagamento ---
 
@@ -127,8 +146,17 @@ const dropdownOpenId = ref<number | null>(null)
 
 const payPeriodYearOptions = computed(() => {
   const y = new Date().getFullYear()
-  return Array.from({ length: 11 }, (_, i) => y - 5 + i)
+  return Array.from({ length: Math.max(0, y - MIN_PERIOD_YEAR + 1) }, (_, i) => MIN_PERIOD_YEAR + i)
 })
+
+function monthOptionsForYear(year: string): typeof MONTHS {
+  if (year === String(MIN_PERIOD_YEAR)) {
+    return MONTHS.filter((m) => Number(m.value) >= MIN_PERIOD_MONTH)
+  }
+  return MONTHS
+}
+
+const isMinListPeriod = computed(() => listPeriod.value === MIN_PERIOD_STR)
 
 const editPeriod = computed(() => {
   if (editPeriodMonth.value && editPeriodYear.value) {
@@ -143,6 +171,26 @@ watch([payPeriodMonth, payPeriodYear], ([m, y]) => {
   if (m && y) payPeriod.value = `01-${m}-${y}`
 })
 
+watch(payPeriodYear, (y) => {
+  if (
+    y === String(MIN_PERIOD_YEAR) &&
+    payPeriodMonth.value &&
+    Number(payPeriodMonth.value) < MIN_PERIOD_MONTH
+  ) {
+    payPeriodMonth.value = String(MIN_PERIOD_MONTH).padStart(2, "0")
+  }
+})
+
+watch(editPeriodYear, (y) => {
+  if (
+    y === String(MIN_PERIOD_YEAR) &&
+    editPeriodMonth.value &&
+    Number(editPeriodMonth.value) < MIN_PERIOD_MONTH
+  ) {
+    editPeriodMonth.value = String(MIN_PERIOD_MONTH).padStart(2, "0")
+  }
+})
+
 watch(payDialogOpen, (open) => {
   if (open) {
     const parts = payPeriod.value.split("-")
@@ -155,7 +203,8 @@ watch(payDialogOpen, (open) => {
 
 watch(editDialogOpen, (open) => {
   if (open && editFormAccount.value?.payment?.period) {
-    const parts = editFormAccount.value.payment.period.split("-")
+    const clamped = clampPeriodToMin(editFormAccount.value.payment.period)
+    const parts = clamped.split("-")
     if (parts.length === 3) {
       editPeriodMonth.value = parts[1] ?? ""
       editPeriodYear.value = parts[2] ?? ""
@@ -179,11 +228,13 @@ async function loadList(period?: string): Promise<void> {
 }
 
 function prevMonth(): void {
+  if (listPeriod.value === MIN_PERIOD_STR) return
   const parts = listPeriod.value.split("-")
   if (parts.length !== 3) return
   const [, month, year] = parts
   const date = new Date(Number(year), Number(month) - 1 - 1, 1)
-  listPeriod.value = `01-${String(date.getMonth() + 1).padStart(2, "0")}-${date.getFullYear()}`
+  const nextPeriod = `01-${String(date.getMonth() + 1).padStart(2, "0")}-${date.getFullYear()}`
+  listPeriod.value = clampPeriodToMin(nextPeriod)
   void loadList()
 }
 
@@ -284,9 +335,17 @@ function openPayDialog(item: PayableAccount) {
   payAmount.value = ""
   payPayer.value = ""
   const d = new Date()
-  payPeriod.value = `01-${String(d.getMonth() + 1).padStart(2, "0")}-${d.getFullYear()}`
-  payPeriodMonth.value = String(d.getMonth() + 1).padStart(2, "0")
-  payPeriodYear.value = String(d.getFullYear())
+  const rawPeriod = `01-${String(d.getMonth() + 1).padStart(2, "0")}-${d.getFullYear()}`
+  const clamped = clampPeriodToMin(rawPeriod)
+  payPeriod.value = clamped
+  const parts = clamped.split("-")
+  if (parts.length === 3) {
+    payPeriodMonth.value = parts[1] ?? String(d.getMonth() + 1).padStart(2, "0")
+    payPeriodYear.value = parts[2] ?? String(d.getFullYear())
+  } else {
+    payPeriodMonth.value = String(d.getMonth() + 1).padStart(2, "0")
+    payPeriodYear.value = String(d.getFullYear())
+  }
   payDialogOpen.value = true
   dropdownOpenId.value = null
   loadUsers()
@@ -363,7 +422,7 @@ async function submitPayForm() {
           Accounts payable
         </h1>
         <div class="flex items-center gap-1" data-testid="accounts-payable-period-selector">
-          <Button variant="ghost" size="icon-sm" @click="prevMonth">
+          <Button variant="ghost" size="icon-sm" :disabled="isMinListPeriod" @click="prevMonth">
             <ChevronLeft class="size-4" />
           </Button>
           <span class="min-w-20 text-center font-medium tabular-nums">
@@ -465,7 +524,11 @@ async function submitPayForm() {
                           <SelectValue placeholder="Mês" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem v-for="m in MONTHS" :key="m.value" :value="m.value">
+                          <SelectItem
+                            v-for="m in monthOptionsForYear(payPeriodYear)"
+                            :key="m.value"
+                            :value="m.value"
+                          >
                             {{ m.label }}
                           </SelectItem>
                         </SelectContent>
@@ -565,7 +628,11 @@ async function submitPayForm() {
                           <SelectValue placeholder="Mês" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem v-for="m in MONTHS" :key="m.value" :value="m.value">
+                          <SelectItem
+                            v-for="m in monthOptionsForYear(editPeriodYear)"
+                            :key="m.value"
+                            :value="m.value"
+                          >
                             {{ m.label }}
                           </SelectItem>
                         </SelectContent>
