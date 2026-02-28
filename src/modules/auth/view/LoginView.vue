@@ -62,6 +62,7 @@ async function onSubmit(e: Event) {
               placeholder="you@example.com"
               autocomplete="email"
               required
+              data-testid="input-text-email"
             />
           </div>
           <div class="grid gap-2">
@@ -73,11 +74,12 @@ async function onSubmit(e: Event) {
               placeholder="••••••••"
               autocomplete="current-password"
               required
+              data-testid="input-text-password"
             />
           </div>
         </CardContent>
         <CardFooter class="flex flex-col gap-3">
-          <Button type="submit" class="w-full" :disabled="loading">
+          <Button type="submit" class="w-full" :disabled="loading" data-testid="button-submit">
             {{ loading ? "Logging in…" : "Log in" }}
           </Button>
           <p class="text-center text-sm text-muted-foreground">
