@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { useAuthStore } from '@/modules/auth/model/store'
-import { Button } from '@/shared/components/ui/button'
+import { ref } from "vue"
+import { useRouter, useRoute } from "vue-router"
+import { useAuthStore } from "@/modules/auth/model/store"
+import { Button } from "@/shared/components/ui/button"
 import {
   Card,
   CardContent,
@@ -10,44 +10,39 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@/shared/components/ui/card'
-import { ErrorMessage } from '@/shared/components/ui/error-message'
-import { Input } from '@/shared/components/ui/input'
-import { Label } from '@/shared/components/ui/label'
+} from "@/shared/components/ui/card"
+import { ErrorMessage } from "@/shared/components/ui/error-message"
+import { Input } from "@/shared/components/ui/input"
+import { Label } from "@/shared/components/ui/label"
 
 const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
 
-const name = ref('')
-const email = ref('')
-const password = ref('')
-const passwordConfirmation = ref('')
-const errorMessage = ref('')
+const name = ref("")
+const email = ref("")
+const password = ref("")
+const passwordConfirmation = ref("")
+const errorMessage = ref("")
 const loading = ref(false)
 
 async function onSubmit(e: Event) {
   e.preventDefault()
-  errorMessage.value = ''
+  errorMessage.value = ""
 
   if (password.value !== passwordConfirmation.value) {
-    errorMessage.value = 'Passwords do not match.'
+    errorMessage.value = "Passwords do not match."
     return
   }
 
   loading.value = true
   try {
-    await authStore.register(
-      name.value,
-      email.value,
-      password.value,
-      passwordConfirmation.value
-    )
+    await authStore.register(name.value, email.value, password.value, passwordConfirmation.value)
     const redirect = (route.query.redirect as string) || undefined
-    await router.push(redirect ? { path: redirect } : { name: 'Dashboard' })
+    await router.push(redirect ? { path: redirect } : { name: "Dashboard" })
   } catch (err: unknown) {
     errorMessage.value =
-      err instanceof Error ? err.message : 'Error creating account. Please try again.'
+      err instanceof Error ? err.message : "Error creating account. Please try again."
   } finally {
     loading.value = false
   }
@@ -59,9 +54,7 @@ async function onSubmit(e: Event) {
     <Card class="w-full max-w-md">
       <CardHeader>
         <CardTitle>Create account</CardTitle>
-        <CardDescription>
-          Fill in the details to register in the application.
-        </CardDescription>
+        <CardDescription> Fill in the details to register in the application. </CardDescription>
       </CardHeader>
       <form @submit="onSubmit" class="flex flex-col gap-4">
         <CardContent class="flex flex-col gap-4">
@@ -112,21 +105,15 @@ async function onSubmit(e: Event) {
           </div>
         </CardContent>
         <CardFooter class="flex flex-col gap-3">
-          <Button
-            type="submit"
-            class="w-full"
-            :disabled="loading"
-          >
-            {{ loading ? 'Creating account…' : 'Create account' }}
+          <Button type="submit" class="w-full" :disabled="loading">
+            {{ loading ? "Creating account…" : "Create account" }}
           </Button>
           <p class="text-center text-sm text-muted-foreground">
             Already have an account?
             <RouterLink
               :to="{
                 name: 'Login',
-                query: route.query.redirect
-                  ? { redirect: route.query.redirect }
-                  : undefined,
+                query: route.query.redirect ? { redirect: route.query.redirect } : undefined,
               }"
               class="text-primary underline underline-offset-4 hover:no-underline"
             >

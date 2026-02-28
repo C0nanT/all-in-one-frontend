@@ -1,11 +1,11 @@
-import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import { toast } from 'vue-sonner'
-import { login as apiLogin, register as apiRegister } from '@/modules/auth/model/api'
+import { defineStore } from "pinia"
+import { ref, computed } from "vue"
+import { toast } from "vue-sonner"
+import { login as apiLogin, register as apiRegister } from "@/modules/auth/model/api"
 
-const AUTH_TOKEN_KEY = 'auth_token'
+const AUTH_TOKEN_KEY = "auth_token"
 
-export const useAuthStore = defineStore('auth', () => {
+export const useAuthStore = defineStore("auth", () => {
   const token = ref<string | null>(null)
 
   const isAuthenticated = computed(() => !!token.value)
@@ -19,8 +19,8 @@ export const useAuthStore = defineStore('auth', () => {
     const { token: newToken } = await apiLogin(email, password)
     token.value = newToken
     localStorage.setItem(AUTH_TOKEN_KEY, newToken)
-    toast.info('Login successful', {
-      description: 'Welcome back.',
+    toast.info("Login successful", {
+      description: "Welcome back.",
     })
   }
 
@@ -40,12 +40,12 @@ export const useAuthStore = defineStore('auth', () => {
     token.value = null
     localStorage.removeItem(AUTH_TOKEN_KEY)
     if (unauthorized && hadToken) {
-      toast.error('Unauthorized', {
-        description: 'You are not authorized to access this resource.',
+      toast.error("Unauthorized", {
+        description: "You are not authorized to access this resource.",
       })
     } else if (!unauthorized) {
-      toast.info('Logout successful', {
-        description: 'You have been logged out.',
+      toast.info("Logout successful", {
+        description: "You have been logged out.",
       })
     }
   }

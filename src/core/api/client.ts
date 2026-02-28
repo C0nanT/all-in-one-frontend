@@ -1,16 +1,16 @@
-import axios from 'axios'
-import { toast } from 'vue-sonner'
+import axios from "axios"
+import { toast } from "vue-sonner"
 
 const baseURL = import.meta.env.VITE_API_URL as string | undefined
 
 export const api = axios.create({
-  baseURL: baseURL ?? '',
+  baseURL: baseURL ?? "",
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 })
 
-const AUTH_TOKEN_KEY = 'auth_token'
+const AUTH_TOKEN_KEY = "auth_token"
 
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem(AUTH_TOKEN_KEY)
@@ -28,21 +28,21 @@ api.interceptors.response.use(
     }
     if (err.response?.status === 401) {
       localStorage.removeItem(AUTH_TOKEN_KEY)
-      toast.error('Session expired', {
-        description: 'Please login again to continue.',
+      toast.error("Session expired", {
+        description: "Please login again to continue.",
       })
-      const base = import.meta.env.BASE_URL?.replace(/\/$/, '') ?? ''
+      const base = import.meta.env.BASE_URL?.replace(/\/$/, "") ?? ""
       window.location.href = `${base}/login`
-      return Promise.reject(new Error('Session expired. Please login again to continue.'))
+      return Promise.reject(new Error("Session expired. Please login again to continue."))
     }
     const data = err.response?.data
     const message =
       data &&
-      typeof data === 'object' &&
-      'message' in data &&
-      typeof (data as { message: unknown }).message === 'string'
+      typeof data === "object" &&
+      "message" in data &&
+      typeof (data as { message: unknown }).message === "string"
         ? (data as { message: string }).message
-        : (err.response?.statusText ?? 'Connection error.')
+        : (err.response?.statusText ?? "Connection error.")
     return Promise.reject(new Error(message))
   },
 )

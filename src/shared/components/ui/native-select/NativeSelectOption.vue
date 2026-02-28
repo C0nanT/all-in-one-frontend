@@ -8,8 +8,8 @@ import { cn } from "@/core/lib/utils"
 const props = defineProps<{ class?: HTMLAttributes["class"] }>()
 
 const attrs = {
-  'data-slot': 'native-select-option',
-  class: cn('bg-popover text-popover-foreground', props.class),
+  "data-slot": "native-select-option",
+  class: cn("bg-popover text-popover-foreground", props.class),
 } as const
 </script>
 
