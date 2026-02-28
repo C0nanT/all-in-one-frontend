@@ -14,6 +14,7 @@
     "format": "prettier --write --experimental-cli src/",
     "cy:open": "cypress open",
     "cy:run": "cypress run",
+    "cy:run:compact": "cypress run --quiet --reporter dot",
     "cy:run:e2e": "cypress run --e2e",
     "cy:run:component": "cypress run --component"
   },
