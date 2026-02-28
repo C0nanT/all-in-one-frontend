@@ -15,11 +15,27 @@ export interface PayableAccount {
   }
 }
 
-export async function fetchPayableAccounts(period: string): Promise<PayableAccount[]> {
-  const res = (await api.get("payable-accounts", {
-    params: { period: period },
-  })) as { data: PayableAccount[] }
-  return res.data
+export interface PaidByUser {
+  user_id: number
+  name: string
+  total_paid: number
+}
+
+export interface PayableAccountsSummary {
+  period: string
+  month_total: number
+  paid_by_user: PaidByUser[]
+}
+
+export interface PayableAccountsListResponse {
+  data: PayableAccount[]
+  summary: PayableAccountsSummary
+}
+
+export async function fetchPayableAccounts(period: string): Promise<PayableAccountsListResponse> {
+  return api.get("payable-accounts", {
+    params: { period },
+  }) as Promise<PayableAccountsListResponse>
 }
 
 export async function createPayableAccount(name: string): Promise<PayableAccount> {

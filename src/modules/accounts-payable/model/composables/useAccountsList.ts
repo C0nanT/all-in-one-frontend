@@ -1,10 +1,15 @@
 import { ref, computed } from "vue"
-import { fetchPayableAccounts, type PayableAccount } from "@/modules/accounts-payable/model/api"
+import {
+  fetchPayableAccounts,
+  type PayableAccount,
+  type PayableAccountsSummary,
+} from "@/modules/accounts-payable/model/api"
 import { getFormattedDate, periodWithFirstDay } from "@/core/lib/format"
 import { clampPeriodToMin, MIN_PERIOD_STR } from "./usePeriod"
 
 export function useAccountsList() {
   const items = ref<PayableAccount[]>([])
+  const summary = ref<PayableAccountsSummary | null>(null)
   const loading = ref(false)
   const error = ref("")
   const listPeriod = ref(clampPeriodToMin(periodWithFirstDay(getFormattedDate())))
@@ -16,7 +21,9 @@ export function useAccountsList() {
     loading.value = true
     error.value = ""
     try {
-      items.value = await fetchPayableAccounts(targetPeriod)
+      const res = await fetchPayableAccounts(targetPeriod)
+      items.value = res.data
+      summary.value = res.summary
     } catch (e) {
       error.value = e instanceof Error ? e.message : "Failed to load accounts"
     } finally {
@@ -46,6 +53,7 @@ export function useAccountsList() {
 
   return {
     items,
+    summary,
     loading,
     error,
     listPeriod,

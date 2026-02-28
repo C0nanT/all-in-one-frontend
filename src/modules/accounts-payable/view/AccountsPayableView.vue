@@ -6,8 +6,9 @@ import { useUsers } from "@/core/composables/useUsers"
 import { useCreateAccountDialog } from "@/modules/accounts-payable/model/composables/useCreateAccountDialog"
 import { usePayDialog } from "@/modules/accounts-payable/model/composables/usePayDialog"
 import { useEditPaymentDialog } from "@/modules/accounts-payable/model/composables/useEditPaymentDialog"
-import { formatPeriodMonthYear } from "@/core/lib/format"
+import { formatMoneyFromNumber, formatPeriodMonthYear } from "@/core/lib/format"
 import { Button } from "@/shared/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 import AccountsTable from "./components/AccountsTable.vue"
 import CreateAccountDialog from "./components/CreateAccountDialog.vue"
 import EditFormDialog from "./components/EditFormDialog.vue"
@@ -25,6 +26,7 @@ function closeDropdown(): void {
 
 const tableItems = computed(() => list.items.value ?? [])
 const tableLoading = computed(() => list.loading.value)
+const summary = computed(() => unref(list.summary))
 
 onMounted(() => {
   void list.loadList()
@@ -63,12 +65,42 @@ onMounted(() => {
       <CreateAccountDialog :dialog="createDialog" />
     </div>
 
-    <AccountsTable
-      :items="tableItems"
-      :loading="tableLoading"
-      @pay="(item) => pay.open(item, closeDropdown)"
-      @edit="(item) => edit.open(item, closeDropdown)"
-    />
+    <div class="grid items-start gap-2 lg:grid-cols-2">
+      <Card v-if="summary" data-testid="accounts-payable-summary" class="h-fit">
+        <CardHeader class="pb-2">
+          <CardTitle class="text-base font-medium">Month total</CardTitle>
+        </CardHeader>
+        <CardContent class="space-y-4">
+          <p class="text-2xl font-semibold tabular-nums">
+            {{ formatMoneyFromNumber(summary.month_total) }}
+          </p>
+          <div>
+            <p class="mb-2 text-sm font-medium text-muted-foreground">Paid by user</p>
+            <ul v-if="summary.paid_by_user.length > 0" class="space-y-1 text-sm">
+              <li
+                v-for="item in summary.paid_by_user"
+                :key="item.user_id"
+                class="flex justify-between"
+              >
+                <span>{{ item.name }}</span>
+                <span class="tabular-nums">{{ formatMoneyFromNumber(item.total_paid) }}</span>
+              </li>
+            </ul>
+            <p v-else class="text-muted-foreground text-sm">
+              No payments with payer in this period
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+      <div :class="summary ? '' : 'lg:col-span-2'" class="min-w-0">
+        <AccountsTable
+          :items="tableItems"
+          :loading="tableLoading"
+          @pay="(item) => pay.open(item, closeDropdown)"
+          @edit="(item) => edit.open(item, closeDropdown)"
+        />
+      </div>
+    </div>
 
     <PayFormDialog :dialog="pay" :users="users" />
     <EditFormDialog :dialog="edit" :users="users" />

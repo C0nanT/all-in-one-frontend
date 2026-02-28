@@ -53,7 +53,10 @@ function onEdit(item: PayableAccount): void {
 </script>
 
 <template>
-  <div class="rounded-md border mt-4 w-1/2 ms-auto" data-testid="accounts-payable-table">
+  <div
+    class="bg-card w-full overflow-hidden rounded-xl border shadow-sm"
+    data-testid="accounts-payable-table"
+  >
     <Table>
       <TableHeader class="bg-card">
         <TableRow>

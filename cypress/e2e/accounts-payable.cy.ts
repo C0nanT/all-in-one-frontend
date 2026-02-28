@@ -1,5 +1,12 @@
 describe("Accounts payable", () => {
   const mockPayableAccounts = {
+    summary: {
+      period: "2026-02",
+      month_total: 3500,
+      paid_by_user: [
+        { user_id: 1, name: "Payer 1", total_paid: 1500 },
+      ],
+    },
     data: [
       {
         id: 1,
@@ -64,6 +71,16 @@ describe("Accounts payable", () => {
       .should("be.visible")
       .and("contain.text", "Add")
     cy.get('[data-testid="accounts-payable-table"]').highlight().should("be.visible")
+
+    cy.get('[data-testid="accounts-payable-summary"]')
+      .highlight()
+      .should("be.visible")
+      .and("contain.text", "Month total")
+      .and("contain.text", "Paid by user")
+    cy.get('[data-testid="accounts-payable-summary"]').within(() => {
+      cy.contains("R$ 3.500,00").highlight().should("be.visible")
+      cy.contains("Payer 1").highlight().should("be.visible")
+    })
 
     cy.get('[data-testid="accounts-payable-table"]').within(() => {
       cy.contains("th", "Account").highlight().should("be.visible")
