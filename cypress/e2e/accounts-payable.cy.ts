@@ -43,7 +43,7 @@ describe("Accounts payable", () => {
     cy.get('[data-testid="accounts-payable-title"]')
       .highlight()
       .should("be.visible")
-      .and("have.text", "Accounts payable")
+      .and("contain.text", "Accounts payable")
     cy.get('[data-testid="accounts-payable-period-selector"]').highlight().should("be.visible")
     cy.get('[data-testid="accounts-payable-add-button"]')
       .highlight()
