@@ -27,11 +27,13 @@ describe("Accounts payable", () => {
   }
 
   beforeEach(() => {
+    cy.session("accounts-payable-auth", () => {
+      cy.login("user@example.com", "password123")
+    })
     cy.intercept("GET", "**/payable-accounts*", {
       statusCode: 200,
       body: mockPayableAccounts,
     }).as("fetchPayableAccounts")
-    cy.login("user@example.com", "password123")
     cy.visit("/")
   })
 
@@ -59,5 +61,44 @@ describe("Accounts payable", () => {
       cy.contains("th", "Period").highlight().should("be.visible")
       cy.contains("th", "Actions").highlight().should("be.visible")
     })
+  })
+
+  it("creates a new payable account without hitting the database", () => {
+    cy.intercept("POST", "**/payable-accounts", (req) => {
+      expect(req.body).to.deep.equal({ name: "Rent" })
+      req.reply({
+        statusCode: 201,
+        body: {
+          data: {
+            id: 99,
+            name: "Rent",
+            status: "unpaid" as const,
+            payment: {
+              payer: "Payer 3",
+              amount: 3000,
+              period: "01-02-2026",
+            },
+          },
+        },
+      })
+    }).as("createPayableAccount")
+
+    cy.contains("a", "Accounts payable").click()
+    cy.url().should("include", "/accounts-payable")
+    cy.wait("@fetchPayableAccounts")
+
+    cy.get('[data-testid="accounts-payable-add-button"]').click()
+
+    cy.get('[role="dialog"]').within(() => {
+      cy.get('input[id="account"]').type("Rent")
+      cy.get('button[type="submit"]').click()
+    })
+
+    cy.wait("@createPayableAccount")
+
+    cy.get('[data-testid="accounts-payable-table"]').within(() => {
+      cy.contains("td", "Rent").should("be.visible")
+    })
+    cy.get('[role="dialog"]').should("not.exist")
   })
 })
