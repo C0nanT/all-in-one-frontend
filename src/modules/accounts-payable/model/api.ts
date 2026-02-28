@@ -1,6 +1,6 @@
-import { api } from '@/core/api/client'
+import { api } from "@/core/api/client"
 
-export type PayableStatus = 'unpaid' | 'paid'
+export type PayableStatus = "unpaid" | "paid"
 
 export interface PayableAccount {
   id: number
@@ -16,14 +16,14 @@ export interface PayableAccount {
 }
 
 export async function fetchPayableAccounts(period: string): Promise<PayableAccount[]> {
-  const res = (await api.get('payable-accounts', {
+  const res = (await api.get("payable-accounts", {
     params: { period: period },
   })) as { data: PayableAccount[] }
   return res.data
 }
 
 export async function createPayableAccount(name: string): Promise<PayableAccount> {
-  const res = (await api.post('payable-accounts', { name })) as { data: PayableAccount }
+  const res = (await api.post("payable-accounts", { name })) as { data: PayableAccount }
   return res.data
 }
 

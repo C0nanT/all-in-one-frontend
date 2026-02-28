@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { LogOut, Moon, Sun, LayoutDashboard, DollarSign } from 'lucide-vue-next'
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/modules/auth/model/store'
-import { useTheme } from '@/core/composables/useTheme'
-import { Button } from '@/shared/components/ui/button'
+import { LogOut, Moon, Sun, LayoutDashboard, DollarSign } from "lucide-vue-next"
+import { useRouter } from "vue-router"
+import { useAuthStore } from "@/modules/auth/model/store"
+import { useTheme } from "@/core/composables/useTheme"
+import { Button } from "@/shared/components/ui/button"
 import {
   Sidebar,
   SidebarContent,
@@ -15,7 +15,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from '@/shared/components/ui/sidebar'
+} from "@/shared/components/ui/sidebar"
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -23,20 +23,20 @@ const { isDark, toggle: toggleTheme } = useTheme()
 
 const navItems = [
   {
-    title: 'Dashboard',
-    to: '/',
+    title: "Dashboard",
+    to: "/",
     icon: LayoutDashboard,
   },
   {
-    title: 'Accounts payable',
-    to: '/accounts-payable',
+    title: "Accounts payable",
+    to: "/accounts-payable",
     icon: DollarSign,
   },
 ]
 
 function logout() {
   authStore.logout()
-  router.push({ name: 'Login' })
+  router.push({ name: "Login" })
 }
 </script>
 
@@ -68,7 +68,7 @@ function logout() {
       <Button variant="ghost" class="w-full justify-start gap-2" @click="toggleTheme">
         <Moon v-if="!isDark" class="size-4 shrink-0" />
         <Sun v-else class="size-4 shrink-0" />
-        <span>{{ isDark ? 'Light mode' : 'Dark mode' }}</span>
+        <span>{{ isDark ? "Light mode" : "Dark mode" }}</span>
       </Button>
       <Button variant="ghost" class="w-full justify-start gap-2" @click="logout">
         <LogOut class="size-4 shrink-0" />

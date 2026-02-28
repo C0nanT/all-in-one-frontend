@@ -1,23 +1,23 @@
-import { ref, watch } from 'vue'
+import { ref, watch } from "vue"
 
-const THEME_KEY = 'theme'
+const THEME_KEY = "theme"
 
 function getInitialDark(): boolean {
-  if (typeof document === 'undefined') return false
+  if (typeof document === "undefined") return false
   const saved = localStorage.getItem(THEME_KEY)
-  if (saved === 'dark') return true
-  if (saved === 'light') return false
-  return window.matchMedia('(prefers-color-scheme: dark)').matches
+  if (saved === "dark") return true
+  if (saved === "light") return false
+  return window.matchMedia("(prefers-color-scheme: dark)").matches
 }
 
 function applyDark(dark: boolean) {
-  if (typeof document === 'undefined') return
+  if (typeof document === "undefined") return
   if (dark) {
-    document.documentElement.classList.add('dark')
+    document.documentElement.classList.add("dark")
   } else {
-    document.documentElement.classList.remove('dark')
+    document.documentElement.classList.remove("dark")
   }
-  localStorage.setItem(THEME_KEY, dark ? 'dark' : 'light')
+  localStorage.setItem(THEME_KEY, dark ? "dark" : "light")
 }
 
 export function initTheme() {
@@ -33,7 +33,7 @@ export function useTheme() {
     (dark) => {
       applyDark(dark)
     },
-    { immediate: false }
+    { immediate: false },
   )
 
   function toggle() {

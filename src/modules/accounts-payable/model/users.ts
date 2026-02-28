@@ -1,4 +1,4 @@
-import { api } from '@/core/api/client'
+import { api } from "@/core/api/client"
 
 export interface User {
   id: number
@@ -7,6 +7,6 @@ export interface User {
 }
 
 export async function fetchUsers(): Promise<User[]> {
-  const res = (await api.get('users')) as { data: User[] }
+  const res = (await api.get("users")) as { data: User[] }
   return res.data
 }

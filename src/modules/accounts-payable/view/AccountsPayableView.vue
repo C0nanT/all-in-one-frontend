@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted, watch, computed } from 'vue'
-import { toast } from 'vue-sonner'
-import { CalendarIcon, ChevronDown, ChevronLeft, ChevronRight, Plus } from 'lucide-vue-next'
+import { ref, onMounted, watch, computed } from "vue"
+import { toast } from "vue-sonner"
+import { CalendarIcon, ChevronDown, ChevronLeft, ChevronRight, Plus } from "lucide-vue-next"
 
 import {
   fetchPayableAccounts,
@@ -10,10 +10,10 @@ import {
   updatePayableAccountPayment,
   type PayableAccount,
   type PayableStatus,
-} from '@/modules/accounts-payable/model/api'
-import { fetchUsers, type User } from '@/modules/accounts-payable/model/users'
-import { Badge } from '@/shared/components/ui/badge'
-import { Button } from '@/shared/components/ui/button'
+} from "@/modules/accounts-payable/model/api"
+import { fetchUsers, type User } from "@/modules/accounts-payable/model/users"
+import { Badge } from "@/shared/components/ui/badge"
+import { Button } from "@/shared/components/ui/button"
 import {
   Dialog,
   DialogContent,
@@ -21,23 +21,23 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/shared/components/ui/dialog'
+} from "@/shared/components/ui/dialog"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/shared/components/ui/dropdown-menu'
-import { Input } from '@/shared/components/ui/input'
-import { Label } from '@/shared/components/ui/label'
-import { Popover, PopoverContent, PopoverTrigger } from '@/shared/components/ui/popover'
+} from "@/shared/components/ui/dropdown-menu"
+import { Input } from "@/shared/components/ui/input"
+import { Label } from "@/shared/components/ui/label"
+import { Popover, PopoverContent, PopoverTrigger } from "@/shared/components/ui/popover"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/shared/components/ui/select'
+} from "@/shared/components/ui/select"
 import {
   Table,
   TableBody,
@@ -45,7 +45,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/shared/components/ui/table'
+} from "@/shared/components/ui/table"
 import {
   formatDateHyphenToSlash,
   formatMoneyBR,
@@ -53,70 +53,70 @@ import {
   getFormattedDate,
   parseMoneyBR,
   periodWithFirstDay,
-} from '@/core/lib/format'
-import { cn } from '@/core/lib/utils'
+} from "@/core/lib/format"
+import { cn } from "@/core/lib/utils"
 
 // --- Constantes ---
 
 const MONTHS = [
-  { value: '01', label: 'Janeiro' },
-  { value: '02', label: 'Fevereiro' },
-  { value: '03', label: 'Março' },
-  { value: '04', label: 'Abril' },
-  { value: '05', label: 'Maio' },
-  { value: '06', label: 'Junho' },
-  { value: '07', label: 'Julho' },
-  { value: '08', label: 'Agosto' },
-  { value: '09', label: 'Setembro' },
-  { value: '10', label: 'Outubro' },
-  { value: '11', label: 'Novembro' },
-  { value: '12', label: 'Dezembro' },
+  { value: "01", label: "Janeiro" },
+  { value: "02", label: "Fevereiro" },
+  { value: "03", label: "Março" },
+  { value: "04", label: "Abril" },
+  { value: "05", label: "Maio" },
+  { value: "06", label: "Junho" },
+  { value: "07", label: "Julho" },
+  { value: "08", label: "Agosto" },
+  { value: "09", label: "Setembro" },
+  { value: "10", label: "Outubro" },
+  { value: "11", label: "Novembro" },
+  { value: "12", label: "Dezembro" },
 ]
 
 const statusConfig: Record<
   PayableStatus,
-  { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline' | 'success' }
+  { label: string; variant: "default" | "secondary" | "destructive" | "outline" | "success" }
 > = {
-  paid: { label: 'Paid', variant: 'success' },
-  unpaid: { label: 'Unpaid', variant: 'destructive' },
+  paid: { label: "Paid", variant: "success" },
+  unpaid: { label: "Unpaid", variant: "destructive" },
 }
 
 // --- Estado: lista ---
 
 const items = ref<PayableAccount[]>([])
 const loading = ref(false)
-const error = ref('')
+const error = ref("")
 const listPeriod = ref(periodWithFirstDay(getFormattedDate()))
 
 // --- Estado: diálogo criar conta ---
 
 const dialogOpen = ref(false)
-const newName = ref('')
+const newName = ref("")
 const loadingCreate = ref(false)
 
 // --- Estado: diálogo pagar ---
 
 const payDialogOpen = ref(false)
 const payFormAccount = ref<PayableAccount | null>(null)
-const payAmount = ref('')
-const payPayer = ref('')
+const payAmount = ref("")
+const payPayer = ref("")
 const payingId = ref<number | null>(null)
 const users = ref<User[]>([])
 const usersLoading = ref(false)
 
 const now = new Date()
-const payPeriod = ref(`01-${String(now.getMonth() + 1).padStart(2, '0')}-${now.getFullYear()}`)
-const payPeriodMonth = ref(String(now.getMonth() + 1).padStart(2, '0'))
+const payPeriod = ref(`01-${String(now.getMonth() + 1).padStart(2, "0")}-${now.getFullYear()}`)
+const payPeriodMonth = ref(String(now.getMonth() + 1).padStart(2, "0"))
 const payPeriodYear = ref(String(now.getFullYear()))
 
 // --- Estado: diálogo editar pagamento ---
 
 const editDialogOpen = ref(false)
 const editFormAccount = ref<PayableAccount | null>(null)
-const editAmount = ref('')
-const editPayer = ref('')
-const editPeriodMonth = ref('')
-const editPeriodYear = ref('')
+const editAmount = ref("")
+const editPayer = ref("")
+const editPeriodMonth = ref("")
+const editPeriodYear = ref("")
 const editingId = ref<number | null>(null)
 
 // --- Estado: UI (dropdown) ---
@@ -134,7 +134,7 @@ const editPeriod = computed(() => {
   if (editPeriodMonth.value && editPeriodYear.value) {
     return `01-${editPeriodMonth.value}-${editPeriodYear.value}`
   }
-  return ''
+  return ""
 })
 
 // --- Watchers ---
@@ -145,7 +145,7 @@ watch([payPeriodMonth, payPeriodYear], ([m, y]) => {
 
 watch(payDialogOpen, (open) => {
   if (open) {
-    const parts = payPeriod.value.split('-')
+    const parts = payPeriod.value.split("-")
     if (parts.length === 3) {
       payPeriodMonth.value = parts[1] ?? payPeriodMonth.value
       payPeriodYear.value = parts[2] ?? payPeriodYear.value
@@ -155,10 +155,10 @@ watch(payDialogOpen, (open) => {
 
 watch(editDialogOpen, (open) => {
   if (open && editFormAccount.value?.payment?.period) {
-    const parts = editFormAccount.value.payment.period.split('-')
+    const parts = editFormAccount.value.payment.period.split("-")
     if (parts.length === 3) {
-      editPeriodMonth.value = parts[1] ?? ''
-      editPeriodYear.value = parts[2] ?? ''
+      editPeriodMonth.value = parts[1] ?? ""
+      editPeriodYear.value = parts[2] ?? ""
     }
   }
 })
@@ -168,31 +168,31 @@ watch(editDialogOpen, (open) => {
 async function loadList(period?: string): Promise<void> {
   const targetPeriod = period ?? listPeriod.value
   loading.value = true
-  error.value = ''
+  error.value = ""
   try {
     items.value = await fetchPayableAccounts(targetPeriod)
   } catch (e) {
-    error.value = e instanceof Error ? e.message : 'Failed to load accounts'
+    error.value = e instanceof Error ? e.message : "Failed to load accounts"
   } finally {
     loading.value = false
   }
 }
 
 function prevMonth(): void {
-  const parts = listPeriod.value.split('-')
+  const parts = listPeriod.value.split("-")
   if (parts.length !== 3) return
   const [, month, year] = parts
   const date = new Date(Number(year), Number(month) - 1 - 1, 1)
-  listPeriod.value = `01-${String(date.getMonth() + 1).padStart(2, '0')}-${date.getFullYear()}`
+  listPeriod.value = `01-${String(date.getMonth() + 1).padStart(2, "0")}-${date.getFullYear()}`
   void loadList()
 }
 
 function nextMonth(): void {
-  const parts = listPeriod.value.split('-')
+  const parts = listPeriod.value.split("-")
   if (parts.length !== 3) return
   const [, month, year] = parts
   const date = new Date(Number(year), Number(month) - 1 + 1, 1)
-  listPeriod.value = `01-${String(date.getMonth() + 1).padStart(2, '0')}-${date.getFullYear()}`
+  listPeriod.value = `01-${String(date.getMonth() + 1).padStart(2, "0")}-${date.getFullYear()}`
   void loadList()
 }
 
@@ -205,14 +205,14 @@ onMounted(() => {
 async function addItem() {
   if (!newName.value.trim()) return
   loadingCreate.value = true
-  error.value = ''
+  error.value = ""
   try {
     const created = await createPayableAccount(newName.value.trim())
     items.value.push(created)
-    newName.value = ''
+    newName.value = ""
     dialogOpen.value = false
   } catch (e) {
-    error.value = e instanceof Error ? e.message : 'Failed to create account'
+    error.value = e instanceof Error ? e.message : "Failed to create account"
   } finally {
     loadingCreate.value = false
   }
@@ -223,11 +223,11 @@ function openEditDialog(item: PayableAccount) {
   editFormAccount.value = item
   const amountCents = Math.round(item.payment.amount * 100)
   editAmount.value = formatMoneyBR(String(amountCents))
-  editPayer.value = item.payment.payer_id != null ? String(item.payment.payer_id) : ''
-  const parts = item.payment.period.split('-')
+  editPayer.value = item.payment.payer_id != null ? String(item.payment.payer_id) : ""
+  const parts = item.payment.period.split("-")
   if (parts.length === 3) {
-    editPeriodMonth.value = parts[1] ?? ''
-    editPeriodYear.value = parts[2] ?? ''
+    editPeriodMonth.value = parts[1] ?? ""
+    editPeriodYear.value = parts[2] ?? ""
   }
   editDialogOpen.value = true
   dropdownOpenId.value = null
@@ -236,7 +236,7 @@ function openEditDialog(item: PayableAccount) {
 
 function onEditAmountInput(e: Event) {
   const target = e.target as HTMLInputElement
-  const digits = target.value.replace(/\D/g, '')
+  const digits = target.value.replace(/\D/g, "")
   editAmount.value = formatMoneyBR(digits)
 }
 
@@ -254,7 +254,7 @@ async function submitEditForm() {
   if (amount <= 0) return
   const selectedUser = users.value.find((u) => String(u.id) === editPayer.value)
   if (!selectedUser) {
-    toast.error('Please select a payer')
+    toast.error("Please select a payer")
     return
   }
   editingId.value = editFormAccount.value.id
@@ -266,12 +266,12 @@ async function submitEditForm() {
       editPeriod.value,
       selectedUser.id,
     )
-    toast.success('Payment updated')
+    toast.success("Payment updated")
     editDialogOpen.value = false
     editFormAccount.value = null
     await loadList()
   } catch (e) {
-    toast.error(e instanceof Error ? e.message : 'Failed to update payment')
+    toast.error(e instanceof Error ? e.message : "Failed to update payment")
   } finally {
     editingId.value = null
   }
@@ -281,11 +281,11 @@ async function submitEditForm() {
 
 function openPayDialog(item: PayableAccount) {
   payFormAccount.value = item
-  payAmount.value = ''
-  payPayer.value = ''
+  payAmount.value = ""
+  payPayer.value = ""
   const d = new Date()
-  payPeriod.value = `01-${String(d.getMonth() + 1).padStart(2, '0')}-${d.getFullYear()}`
-  payPeriodMonth.value = String(d.getMonth() + 1).padStart(2, '0')
+  payPeriod.value = `01-${String(d.getMonth() + 1).padStart(2, "0")}-${d.getFullYear()}`
+  payPeriodMonth.value = String(d.getMonth() + 1).padStart(2, "0")
   payPeriodYear.value = String(d.getFullYear())
   payDialogOpen.value = true
   dropdownOpenId.value = null
@@ -294,7 +294,7 @@ function openPayDialog(item: PayableAccount) {
 
 function onAmountInput(e: Event) {
   const target = e.target as HTMLInputElement
-  const digits = target.value.replace(/\D/g, '')
+  const digits = target.value.replace(/\D/g, "")
   payAmount.value = formatMoneyBR(digits)
 }
 
@@ -309,7 +309,7 @@ async function loadUsers() {
     if (editDialogOpen.value && editFormAccount.value && !editPayer.value) {
       const payerId = editFormAccount.value.payment?.payer_id
       editPayer.value =
-        payerId != null ? String(payerId) : users.value[0] ? String(users.value[0].id) : ''
+        payerId != null ? String(payerId) : users.value[0] ? String(users.value[0].id) : ""
     }
   } catch {
     users.value = []
@@ -331,7 +331,7 @@ async function submitPayForm() {
   if (!payFormAccount.value || amount <= 0) return
   const selectedUser = users.value.find((u) => String(u.id) === payPayer.value)
   if (!selectedUser) {
-    toast.error('Please select a payer')
+    toast.error("Please select a payer")
     return
   }
   payingId.value = payFormAccount.value.id
@@ -346,7 +346,7 @@ async function submitPayForm() {
     payFormAccount.value = null
     await loadList()
   } catch (e) {
-    toast.error(e instanceof Error ? e.message : 'Failed to register payment')
+    toast.error(e instanceof Error ? e.message : "Failed to register payment")
   } finally {
     payingId.value = null
   }
@@ -359,8 +359,10 @@ async function submitPayForm() {
 
     <div class="flex items-center justify-between bg-card p-4 rounded-md">
       <div class="flex items-center gap-4">
-        <h1 class="text-2xl font-semibold">Accounts payable</h1>
-        <div class="flex items-center gap-1">
+        <h1 class="text-2xl font-semibold" data-testid="accounts-payable-title">
+          Accounts payable
+        </h1>
+        <div class="flex items-center gap-1" data-testid="accounts-payable-period-selector">
           <Button variant="ghost" size="icon-sm" @click="prevMonth">
             <ChevronLeft class="size-4" />
           </Button>
@@ -376,7 +378,7 @@ async function submitPayForm() {
       <!-- Diálogo: nova conta -->
       <Dialog v-model:open="dialogOpen">
         <DialogTrigger as-child>
-          <Button>
+          <Button data-testid="accounts-payable-add-button">
             Add
             <Plus class="size-4 shrink-0" />
           </Button>
@@ -392,7 +394,7 @@ async function submitPayForm() {
             </div>
             <DialogFooter>
               <Button type="submit" class="mx-auto" :disabled="loadingCreate">
-                {{ loadingCreate ? 'Adding…' : 'Add' }}
+                {{ loadingCreate ? "Adding…" : "Add" }}
               </Button>
             </DialogFooter>
           </form>
@@ -451,7 +453,7 @@ async function submitPayForm() {
                     "
                   >
                     <CalendarIcon class="mr-2 size-4 shrink-0" />
-                    {{ formatPeriodMonthYear(payPeriod) || 'Mês e ano' }}
+                    {{ formatPeriodMonthYear(payPeriod) || "Mês e ano" }}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent class="w-auto p-4" align="start">
@@ -492,7 +494,7 @@ async function submitPayForm() {
                 class="mx-auto px-8"
                 :disabled="!hasValidAmount() || !hasValidPayer() || payingId !== null"
               >
-                {{ payingId !== null ? 'Registering…' : 'Pay' }}
+                {{ payingId !== null ? "Registering…" : "Pay" }}
               </Button>
             </DialogFooter>
           </form>
@@ -551,7 +553,7 @@ async function submitPayForm() {
                     "
                   >
                     <CalendarIcon class="mr-2 size-4 shrink-0" />
-                    {{ formatPeriodMonthYear(editPeriod) || 'Mês e ano' }}
+                    {{ formatPeriodMonthYear(editPeriod) || "Mês e ano" }}
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent class="w-auto p-4" align="start">
@@ -592,7 +594,7 @@ async function submitPayForm() {
                 class="mx-auto px-8"
                 :disabled="!hasValidEditAmount() || !hasValidEditPayer() || editingId !== null"
               >
-                {{ editingId !== null ? 'Saving…' : 'Save' }}
+                {{ editingId !== null ? "Saving…" : "Save" }}
               </Button>
             </DialogFooter>
           </form>
@@ -600,7 +602,7 @@ async function submitPayForm() {
       </Dialog>
     </div>
 
-    <div class="rounded-md border mt-4 w-1/2 ms-auto">
+    <div class="rounded-md border mt-4 w-1/2 ms-auto" data-testid="accounts-payable-table">
       <Table>
         <TableHeader class="bg-card">
           <TableRow>
