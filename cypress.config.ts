@@ -1,6 +1,8 @@
 import { defineConfig } from 'cypress'
 
 export default defineConfig({
+  allowCypressEnv: false,
+  screenshotsFolder: 'cypress/screenshots-output',
   e2e: {
     baseUrl: 'http://localhost:5173',
     viewportWidth: 1366,

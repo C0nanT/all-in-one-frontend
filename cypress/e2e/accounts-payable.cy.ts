@@ -65,7 +65,7 @@ describe("Accounts payable", () => {
 
   it("creates a new payable account without hitting the database", () => {
     cy.intercept("POST", "**/payable-accounts", (req) => {
-      expect(req.body).to.deep.equal({ name: "Rent" })
+      expect(req.body).to.deep.equal({ name: "Account 3" })
       req.reply({
         statusCode: 201,
         body: {
