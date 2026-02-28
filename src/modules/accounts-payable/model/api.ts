@@ -1,6 +1,6 @@
 import { api } from "@/core/api/client"
 
-export type PayableStatus = "unpaid" | "paid"
+export type PayableStatus = "unpaid" | "paid" | "paid_zero"
 
 export interface PayableAccount {
   id: number
@@ -8,8 +8,8 @@ export interface PayableAccount {
   status: PayableStatus
   payment: {
     id?: number
-    payer_id?: number
-    payer: string
+    payer_id?: number | null
+    payer: string | null
     amount: number
     period: string
   }
@@ -31,7 +31,7 @@ export async function payPayableAccount(
   id: number,
   amount: number,
   period: string,
-  payer_id: number,
+  payer_id: number | null,
 ): Promise<PayableAccount> {
   const res = (await api.post(`payable-accounts/${id}/payments`, { amount, period, payer_id })) as {
     data: PayableAccount
@@ -44,7 +44,7 @@ export async function updatePayableAccountPayment(
   paymentId: number,
   amount: number,
   period: string,
-  payer_id: number,
+  payer_id: number | null,
 ): Promise<void> {
   await api.put(`payable-accounts/${accountId}/payments/${paymentId}`, {
     amount,

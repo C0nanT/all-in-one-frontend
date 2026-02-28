@@ -25,6 +25,7 @@ const statusConfig: Record<
   { label: string; variant: "default" | "secondary" | "destructive" | "outline" | "success" }
 > = {
   paid: { label: "Paid", variant: "success" },
+  paid_zero: { label: "No charge", variant: "secondary" },
   unpaid: { label: "Unpaid", variant: "destructive" },
 }
 
@@ -78,7 +79,7 @@ function onEdit(item: PayableAccount): void {
             </Badge>
           </TableCell>
           <TableCell>{{ item.payment?.amount.toFixed(2) }}</TableCell>
-          <TableCell>{{ item.payment?.payer }}</TableCell>
+          <TableCell>{{ item.payment?.payer ?? "-" }}</TableCell>
           <TableCell>{{ formatDateHyphenToSlash(item.payment?.period) }}</TableCell>
           <TableCell>
             <DropdownMenu
@@ -95,10 +96,13 @@ function onEdit(item: PayableAccount): void {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
-                <DropdownMenuItem v-if="item.status === 'paid'" @select="onEdit(item)">
+                <DropdownMenuItem
+                  v-if="item.status === 'paid' || item.status === 'paid_zero'"
+                  @select="onEdit(item)"
+                >
                   Edit
                 </DropdownMenuItem>
-                <DropdownMenuItem v-if="item.status !== 'paid'" @select="onPay(item)">
+                <DropdownMenuItem v-if="item.status === 'unpaid'" @select="onPay(item)">
                   Pay
                 </DropdownMenuItem>
               </DropdownMenuContent>

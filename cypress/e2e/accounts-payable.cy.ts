@@ -16,9 +16,21 @@ describe("Accounts payable", () => {
       {
         id: 2,
         name: "Account 2",
+        status: "paid_zero" as const,
+        payment: {
+          id: 102,
+          payer_id: null,
+          payer: null,
+          amount: 0,
+          period: "01-02-2026",
+        },
+      },
+      {
+        id: 3,
+        name: "Account 3",
         status: "unpaid" as const,
         payment: {
-          payer: "Payer 2",
+          payer: "Payer 3",
           amount: 2000,
           period: "01-02-2026",
         },
@@ -60,6 +72,7 @@ describe("Accounts payable", () => {
       cy.contains("th", "Payer").highlight().should("be.visible")
       cy.contains("th", "Period").highlight().should("be.visible")
       cy.contains("th", "Actions").highlight().should("be.visible")
+      cy.contains("No charge").highlight().should("be.visible")
     })
   })
 

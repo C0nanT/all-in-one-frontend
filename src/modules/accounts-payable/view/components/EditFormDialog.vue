@@ -69,9 +69,20 @@ const editPayerModel = computed({
         </div>
         <div class="grid gap-2">
           <Label for="edit-payer">Payer</Label>
-          <Select v-model="editPayerModel" :disabled="unref(users.usersLoading)">
+          <Select
+            v-model="editPayerModel"
+            :disabled="dialog.isZeroAmount() || unref(users.usersLoading)"
+          >
             <SelectTrigger id="edit-payer" class="w-full">
-              <SelectValue :placeholder="unref(users.usersLoading) ? 'Loading…' : 'Select payer'" />
+              <SelectValue
+                :placeholder="
+                  dialog.isZeroAmount()
+                    ? 'Not applicable for R$ 0,00'
+                    : unref(users.usersLoading)
+                      ? 'Loading…'
+                      : 'Select payer'
+                "
+              />
             </SelectTrigger>
             <SelectContent>
               <SelectItem v-for="u in unref(users.users)" :key="u.id" :value="String(u.id)">
