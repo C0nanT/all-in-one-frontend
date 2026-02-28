@@ -71,7 +71,7 @@ describe("Accounts payable", () => {
         body: {
           data: {
             id: 99,
-            name: "Rent",
+            name: "Account 4",
             status: "unpaid" as const,
             payment: {
               payer: "Payer 3",
@@ -90,14 +90,14 @@ describe("Accounts payable", () => {
     cy.get('[data-testid="accounts-payable-add-button"]').click()
 
     cy.get('[role="dialog"]').within(() => {
-      cy.get('input[id="account"]').type("Rent")
+      cy.get('input[id="account"]').type("Account 3")
       cy.get('button[type="submit"]').click()
     })
 
     cy.wait("@createPayableAccount")
 
     cy.get('[data-testid="accounts-payable-table"]').within(() => {
-      cy.contains("td", "Rent").should("be.visible")
+      cy.contains("td", "Account 3").should("be.visible")
     })
     cy.get('[role="dialog"]').should("not.exist")
   })
