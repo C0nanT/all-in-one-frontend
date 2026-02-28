@@ -71,7 +71,7 @@ describe("Accounts payable", () => {
         body: {
           data: {
             id: 99,
-            name: "Account 4",
+            name: "Account 3",
             status: "unpaid" as const,
             payment: {
               payer: "Payer 3",
