@@ -16,6 +16,22 @@ export function useAccountsList() {
 
   const isMinListPeriod = computed(() => listPeriod.value === MIN_PERIOD_STR)
 
+  const totalPaidByAllUsers = computed(() => {
+    const s = summary.value
+    if (!s?.paid_by_user?.length) return 0
+    return s.paid_by_user.reduce((acc, item) => acc + item.total_paid, 0)
+  })
+
+  const paidByUserWithPercentage = computed(() => {
+    const s = summary.value
+    const total = totalPaidByAllUsers.value
+    if (!s?.paid_by_user?.length) return []
+    return s.paid_by_user.map((item) => ({
+      ...item,
+      percentage: total > 0 ? (item.total_paid / total) * 100 : 0,
+    }))
+  })
+
   async function loadList(period?: string): Promise<void> {
     const targetPeriod = period ?? listPeriod.value
     loading.value = true
@@ -58,6 +74,8 @@ export function useAccountsList() {
     error,
     listPeriod,
     isMinListPeriod,
+    totalPaidByAllUsers,
+    paidByUserWithPercentage,
     loadList,
     prevMonth,
     nextMonth,

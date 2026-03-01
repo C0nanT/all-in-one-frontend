@@ -13,6 +13,7 @@ import AccountsTable from "./components/AccountsTable.vue"
 import CreateAccountDialog from "./components/CreateAccountDialog.vue"
 import EditFormDialog from "./components/EditFormDialog.vue"
 import PayFormDialog from "./components/PayFormDialog.vue"
+import UserPaymentProgressBar from "./components/UserPaymentProgressBar.vue"
 
 const list = useAccountsList()
 const users = useUsers()
@@ -27,6 +28,7 @@ function closeDropdown(): void {
 const tableItems = computed(() => list.items.value ?? [])
 const tableLoading = computed(() => list.loading.value)
 const summary = computed(() => unref(list.summary))
+const paidByUserWithPercentage = computed(() => list.paidByUserWithPercentage.value)
 
 onMounted(() => {
   void list.loadList()
@@ -85,16 +87,19 @@ onMounted(() => {
           </div>
           <div class="border-t border-border pt-4">
             <p class="mb-2 text-sm font-medium text-muted-foreground">Paid by user</p>
-            <ul v-if="summary.paid_by_user.length > 0" class="space-y-1 text-base">
+            <ul v-if="paidByUserWithPercentage.length > 0" class="space-y-1 text-base">
               <li
-                v-for="item in summary.paid_by_user"
+                v-for="item in paidByUserWithPercentage"
                 :key="item.user_id"
-                class="flex items-center justify-between rounded-md py-2 px-2 -mx-2 transition-colors hover:bg-muted/50"
+                class="flex flex-col gap-1.5 rounded-md py-2 px-2 -mx-2 transition-colors hover:bg-muted/50"
               >
-                <span>{{ item.name }}</span>
-                <span class="tabular-nums text-muted-foreground">
-                  {{ formatMoneyFromNumber(item.total_paid) }}
-                </span>
+                <div class="flex items-center justify-between">
+                  <span>{{ item.name }}</span>
+                  <span class="tabular-nums text-muted-foreground">
+                    {{ formatMoneyFromNumber(item.total_paid) }}
+                  </span>
+                </div>
+                <UserPaymentProgressBar :percentage="item.percentage" />
               </li>
             </ul>
             <p v-else class="text-sm text-muted-foreground">
