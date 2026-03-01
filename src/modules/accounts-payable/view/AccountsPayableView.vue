@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, unref } from "vue"
-import { ChevronLeft, ChevronRight } from "lucide-vue-next"
+import { ChevronLeft, ChevronRight, CircleDollarSign } from "lucide-vue-next"
 import { useAccountsList } from "@/modules/accounts-payable/model/composables/useAccountsList"
 import { useUsers } from "@/core/composables/useUsers"
 import { useCreateAccountDialog } from "@/modules/accounts-payable/model/composables/useCreateAccountDialog"
@@ -66,27 +66,38 @@ onMounted(() => {
     </div>
 
     <div class="grid items-start gap-2 lg:grid-cols-2">
-      <Card v-if="summary" data-testid="accounts-payable-summary" class="h-fit">
+      <Card
+        v-if="summary"
+        data-testid="accounts-payable-summary"
+        class="h-fit border-l-4 border-l-primary"
+      >
         <CardHeader class="pb-2">
-          <CardTitle class="text-base font-medium">Month total</CardTitle>
+          <CardTitle class="flex items-center gap-2 text-base font-medium">
+            <CircleDollarSign class="size-4 shrink-0 text-primary" aria-hidden="true" />
+            Month total
+          </CardTitle>
         </CardHeader>
         <CardContent class="space-y-4">
-          <p class="text-2xl font-semibold tabular-nums">
-            {{ formatMoneyFromNumber(summary.month_total) }}
-          </p>
-          <div>
+          <div class="rounded-lg bg-primary/5 px-4 py-3">
+            <p class="text-3xl font-bold tabular-nums">
+              {{ formatMoneyFromNumber(summary.month_total) }}
+            </p>
+          </div>
+          <div class="border-t border-border pt-4">
             <p class="mb-2 text-sm font-medium text-muted-foreground">Paid by user</p>
             <ul v-if="summary.paid_by_user.length > 0" class="space-y-1 text-sm">
               <li
                 v-for="item in summary.paid_by_user"
                 :key="item.user_id"
-                class="flex justify-between"
+                class="flex items-center justify-between rounded-md py-2 px-2 -mx-2 transition-colors hover:bg-muted/50"
               >
                 <span>{{ item.name }}</span>
-                <span class="tabular-nums">{{ formatMoneyFromNumber(item.total_paid) }}</span>
+                <span class="tabular-nums text-muted-foreground">
+                  {{ formatMoneyFromNumber(item.total_paid) }}
+                </span>
               </li>
             </ul>
-            <p v-else class="text-muted-foreground text-sm">
+            <p v-else class="text-sm text-muted-foreground">
               No payments with payer in this period
             </p>
           </div>
