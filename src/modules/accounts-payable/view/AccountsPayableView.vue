@@ -69,23 +69,23 @@ onMounted(() => {
       <Card
         v-if="summary"
         data-testid="accounts-payable-summary"
-        class="h-fit border-l-4 border-l-primary"
+        class="h-fit border-l-4 border-l-primary gap-0"
       >
-        <CardHeader class="pb-2">
+        <CardHeader class="pb-0">
           <CardTitle class="flex items-center gap-2 text-base font-medium">
             <CircleDollarSign class="size-4 shrink-0 text-primary" aria-hidden="true" />
             Month total
           </CardTitle>
         </CardHeader>
-        <CardContent class="space-y-4">
-          <div class="rounded-lg bg-primary/5 px-4 py-3">
+        <CardContent class="space-y-4 pt-1">
+          <div class="rounded-lg bg-primary/5 px-4 py-2">
             <p class="text-3xl font-bold tabular-nums">
               {{ formatMoneyFromNumber(summary.month_total) }}
             </p>
           </div>
           <div class="border-t border-border pt-4">
             <p class="mb-2 text-sm font-medium text-muted-foreground">Paid by user</p>
-            <ul v-if="summary.paid_by_user.length > 0" class="space-y-1 text-sm">
+            <ul v-if="summary.paid_by_user.length > 0" class="space-y-1 text-base">
               <li
                 v-for="item in summary.paid_by_user"
                 :key="item.user_id"
