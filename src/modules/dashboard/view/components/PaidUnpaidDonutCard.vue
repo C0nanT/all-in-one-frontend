@@ -1,9 +1,6 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue"
 import { RouterLink } from "vue-router"
-import { fetchPayableAccounts } from "@/modules/accounts-payable/model/api"
-import { clampPeriodToMin } from "@/modules/accounts-payable/model/composables/usePeriod"
-import { getFormattedDate, periodWithFirstDay } from "@/core/lib/format"
+import { usePaidUnpaidDonut } from "@/modules/dashboard/model/composables/usePaidUnpaidDonut"
 import {
   Card,
   CardContent,
@@ -12,71 +9,24 @@ import {
   CardTitle,
 } from "@/shared/components/ui/card"
 
-const loading = ref(true)
-const error = ref<string | null>(null)
-const paid = ref(0)
-const unpaid = ref(0)
-
-const currentMonthLabel = new Date().toLocaleDateString("pt-BR", {
-  month: "long",
-  year: "numeric",
-})
-
-const total = computed(() => paid.value + unpaid.value)
-const isEmpty = computed(() => total.value === 0)
-
-const CIRCUMFERENCE = 2 * Math.PI * 40
-
-const paidStrokeDasharray = computed(() => {
-  if (total.value === 0) return "0"
-  const len = (paid.value / total.value) * CIRCUMFERENCE
-  return `${len} ${CIRCUMFERENCE - len}`
-})
-
-const unpaidStrokeDasharray = computed(() => {
-  if (total.value === 0 || unpaid.value === 0) return "0"
-  const len = (unpaid.value / total.value) * CIRCUMFERENCE
-  return `${len} ${CIRCUMFERENCE - len}`
-})
-
-const unpaidStrokeDashoffset = computed(() => {
-  if (total.value === 0) return 0
-  return -(paid.value / total.value) * CIRCUMFERENCE
-})
-
-async function loadData(): Promise<void> {
-  loading.value = true
-  error.value = null
-  try {
-    const period = clampPeriodToMin(periodWithFirstDay(getFormattedDate()))
-    const { data } = await fetchPayableAccounts(period)
-    let paidCount = 0
-    let unpaidCount = 0
-    for (const account of data) {
-      if (account.status === "unpaid") {
-        unpaidCount++
-      } else {
-        paidCount++
-      }
-    }
-    paid.value = paidCount
-    unpaid.value = unpaidCount
-  } catch (e) {
-    error.value = e instanceof Error ? e.message : "Failed to load accounts"
-  } finally {
-    loading.value = false
-  }
-}
-
-onMounted(() => {
-  void loadData()
-})
+const {
+  loading,
+  error,
+  paid,
+  unpaid,
+  total,
+  isEmpty,
+  currentMonthLabel,
+  paidStrokeDasharray,
+  unpaidStrokeDasharray,
+  unpaidStrokeDashoffset,
+} = usePaidUnpaidDonut()
 </script>
 
 <template>
   <RouterLink
     :to="{ name: 'AccountsPayable' }"
-    class="block w-full max-w-[280px] transition-opacity hover:opacity-90"
+    class="block w-full max-w-[280px] transition-opacity transition-transform duration-300 hover:scale-105 hover:opacity-90"
   >
     <Card class="w-full cursor-pointer">
       <CardHeader class="pb-2">

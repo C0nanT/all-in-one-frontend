@@ -6,7 +6,6 @@ import PaidUnpaidDonutCard from "./components/PaidUnpaidDonutCard.vue"
   <div class="space-y-6">
     <div>
       <h1 class="text-2xl font-semibold">Welcome</h1>
-      <p class="text-muted-foreground">You are authenticated.</p>
     </div>
     <PaidUnpaidDonutCard />
   </div>

@@ -32,10 +32,22 @@ export interface PayableAccountsListResponse {
   summary: PayableAccountsSummary
 }
 
+export interface PayableAccountsCountsResponse {
+  data: { paid: number; unpaid: number }
+}
+
 export async function fetchPayableAccounts(period: string): Promise<PayableAccountsListResponse> {
   return api.get("payable-accounts", {
     params: { period },
   }) as Promise<PayableAccountsListResponse>
+}
+
+export async function fetchPayableAccountsCounts(
+  period: string,
+): Promise<PayableAccountsCountsResponse> {
+  return api.get("payable-accounts/counts", {
+    params: { period },
+  }) as Promise<PayableAccountsCountsResponse>
 }
 
 export async function createPayableAccount(name: string): Promise<PayableAccount> {
