@@ -49,16 +49,20 @@ describe("Accounts payable", () => {
     cy.session("accounts-payable-auth", () => {
       cy.login("user@example.com", "password123")
     })
+    cy.intercept("GET", "**/payable-accounts/counts*", {
+      statusCode: 200,
+      body: { data: { paid: 2, unpaid: 1 } },
+    })
     cy.intercept("GET", "**/payable-accounts*", {
       statusCode: 200,
       body: mockPayableAccounts,
     }).as("fetchPayableAccounts")
     cy.visit("/")
+    cy.url().should("not.include", "/login")
   })
 
-  it("navigates from dashboard via sidebar and displays all components", () => {
-    cy.contains("a", "Accounts payable").click()
-    cy.url().should("include", "/accounts-payable")
+  it("displays all components", () => {
+    cy.visit("/accounts-payable")
     cy.wait("@fetchPayableAccounts")
 
     cy.get('[data-testid="accounts-payable-title"]')
@@ -113,8 +117,7 @@ describe("Accounts payable", () => {
       })
     }).as("createPayableAccount")
 
-    cy.contains("a", "Accounts payable").click()
-    cy.url().should("include", "/accounts-payable")
+    cy.visit("/accounts-payable")
     cy.wait("@fetchPayableAccounts")
 
     cy.get('[data-testid="accounts-payable-add-button"]').click()

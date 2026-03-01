@@ -26,6 +26,7 @@ const {
 <template>
   <RouterLink
     :to="{ name: 'AccountsPayable' }"
+    data-testid="dashboard-accounts-payable-card"
     class="block w-full max-w-[280px] transition-opacity transition-transform duration-300 hover:scale-105 hover:opacity-90"
   >
     <Card class="w-full cursor-pointer">
