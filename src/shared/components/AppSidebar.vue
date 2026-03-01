@@ -54,7 +54,13 @@ function logout() {
           <SidebarMenu>
             <SidebarMenuItem v-for="item in navItems" :key="item.title">
               <SidebarMenuButton as-child :is-active="$route.path === item.to">
-                <RouterLink :to="item.to" class="flex items-center gap-2">
+                <RouterLink
+                  :to="item.to"
+                  class="flex items-center gap-2"
+                  :data-testid="
+                    item.to === '/accounts-payable' ? 'nav-accounts-payable' : undefined
+                  "
+                >
                   <component :is="item.icon" class="size-4 shrink-0" />
                   <span>{{ item.title }}</span>
                 </RouterLink>

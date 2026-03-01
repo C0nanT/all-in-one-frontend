@@ -1,5 +1,12 @@
 describe("Accounts payable", () => {
   const mockPayableAccounts = {
+    summary: {
+      period: "2026-02",
+      month_total: 3500,
+      paid_by_user: [
+        { user_id: 1, name: "Payer 1", total_paid: 1500 },
+      ],
+    },
     data: [
       {
         id: 1,
@@ -16,9 +23,21 @@ describe("Accounts payable", () => {
       {
         id: 2,
         name: "Account 2",
+        status: "paid_zero" as const,
+        payment: {
+          id: 102,
+          payer_id: null,
+          payer: null,
+          amount: 0,
+          period: "01-02-2026",
+        },
+      },
+      {
+        id: 3,
+        name: "Account 3",
         status: "unpaid" as const,
         payment: {
-          payer: "Payer 2",
+          payer: "Payer 3",
           amount: 2000,
           period: "01-02-2026",
         },
@@ -30,16 +49,20 @@ describe("Accounts payable", () => {
     cy.session("accounts-payable-auth", () => {
       cy.login("user@example.com", "password123")
     })
+    cy.intercept("GET", "**/payable-accounts/counts*", {
+      statusCode: 200,
+      body: { data: { paid: 2, unpaid: 1 } },
+    })
     cy.intercept("GET", "**/payable-accounts*", {
       statusCode: 200,
       body: mockPayableAccounts,
     }).as("fetchPayableAccounts")
     cy.visit("/")
+    cy.url().should("not.include", "/login")
   })
 
-  it("navigates from dashboard via sidebar and displays all components", () => {
-    cy.contains("a", "Accounts payable").click()
-    cy.url().should("include", "/accounts-payable")
+  it("displays all components", () => {
+    cy.visit("/accounts-payable")
     cy.wait("@fetchPayableAccounts")
 
     cy.get('[data-testid="accounts-payable-title"]')
@@ -53,6 +76,16 @@ describe("Accounts payable", () => {
       .and("contain.text", "Add")
     cy.get('[data-testid="accounts-payable-table"]').highlight().should("be.visible")
 
+    cy.get('[data-testid="accounts-payable-summary"]')
+      .highlight()
+      .should("be.visible")
+      .and("contain.text", "Month total")
+      .and("contain.text", "Paid by user")
+    cy.get('[data-testid="accounts-payable-summary"]').within(() => {
+      cy.contains("R$ 3.500,00").highlight().should("be.visible")
+      cy.contains("Payer 1").highlight().should("be.visible")
+    })
+
     cy.get('[data-testid="accounts-payable-table"]').within(() => {
       cy.contains("th", "Account").highlight().should("be.visible")
       cy.contains("th", "Status").highlight().should("be.visible")
@@ -60,6 +93,7 @@ describe("Accounts payable", () => {
       cy.contains("th", "Payer").highlight().should("be.visible")
       cy.contains("th", "Period").highlight().should("be.visible")
       cy.contains("th", "Actions").highlight().should("be.visible")
+      cy.contains("No charge").highlight().should("be.visible")
     })
   })
 
@@ -83,8 +117,7 @@ describe("Accounts payable", () => {
       })
     }).as("createPayableAccount")
 
-    cy.contains("a", "Accounts payable").click()
-    cy.url().should("include", "/accounts-payable")
+    cy.visit("/accounts-payable")
     cy.wait("@fetchPayableAccounts")
 
     cy.get('[data-testid="accounts-payable-add-button"]').click()

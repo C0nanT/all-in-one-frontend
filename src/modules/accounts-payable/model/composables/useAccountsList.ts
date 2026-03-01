@@ -1,22 +1,45 @@
 import { ref, computed } from "vue"
-import { fetchPayableAccounts, type PayableAccount } from "@/modules/accounts-payable/model/api"
+import {
+  fetchPayableAccounts,
+  type PayableAccount,
+  type PayableAccountsSummary,
+} from "@/modules/accounts-payable/model/api"
 import { getFormattedDate, periodWithFirstDay } from "@/core/lib/format"
 import { clampPeriodToMin, MIN_PERIOD_STR } from "./usePeriod"
 
 export function useAccountsList() {
   const items = ref<PayableAccount[]>([])
+  const summary = ref<PayableAccountsSummary | null>(null)
   const loading = ref(false)
   const error = ref("")
   const listPeriod = ref(clampPeriodToMin(periodWithFirstDay(getFormattedDate())))
 
   const isMinListPeriod = computed(() => listPeriod.value === MIN_PERIOD_STR)
 
+  const totalPaidByAllUsers = computed(() => {
+    const s = summary.value
+    if (!s?.paid_by_user?.length) return 0
+    return s.paid_by_user.reduce((acc, item) => acc + item.total_paid, 0)
+  })
+
+  const paidByUserWithPercentage = computed(() => {
+    const s = summary.value
+    const total = totalPaidByAllUsers.value
+    if (!s?.paid_by_user?.length) return []
+    return s.paid_by_user.map((item) => ({
+      ...item,
+      percentage: total > 0 ? (item.total_paid / total) * 100 : 0,
+    }))
+  })
+
   async function loadList(period?: string): Promise<void> {
     const targetPeriod = period ?? listPeriod.value
     loading.value = true
     error.value = ""
     try {
-      items.value = await fetchPayableAccounts(targetPeriod)
+      const res = await fetchPayableAccounts(targetPeriod)
+      items.value = res.data
+      summary.value = res.summary
     } catch (e) {
       error.value = e instanceof Error ? e.message : "Failed to load accounts"
     } finally {
@@ -46,10 +69,13 @@ export function useAccountsList() {
 
   return {
     items,
+    summary,
     loading,
     error,
     listPeriod,
     isMinListPeriod,
+    totalPaidByAllUsers,
+    paidByUserWithPercentage,
     loadList,
     prevMonth,
     nextMonth,

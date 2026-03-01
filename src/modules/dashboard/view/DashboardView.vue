@@ -1,8 +1,12 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import PaidUnpaidDonutCard from "./components/PaidUnpaidDonutCard.vue"
+</script>
 
 <template>
-  <div>
-    <h1 class="text-2xl font-semibold">Welcome</h1>
-    <p class="text-muted-foreground">You are authenticated.</p>
+  <div class="space-y-6">
+    <div>
+      <h1 class="text-2xl font-semibold">Welcome</h1>
+    </div>
+    <PaidUnpaidDonutCard />
   </div>
 </template>

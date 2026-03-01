@@ -43,6 +43,13 @@ export function formatMoneyBR(digitsOnly: string): string {
   return withDots ? `R$ ${withDots},${cents}` : `R$ ,${cents}`
 }
 
+/** Formats a numeric value (e.g. 150.50) as Brazilian currency "R$ 150,50". */
+export function formatMoneyFromNumber(value: number): string {
+  if (value === 0) return "R$ 0,00"
+  const cents = Math.round(value * 100)
+  return formatMoneyBR(String(cents))
+}
+
 /** Extracts the numeric value from the formatted string "R$ 1.234,56" */
 export function parseMoneyBR(value: string): number {
   const cleaned = value

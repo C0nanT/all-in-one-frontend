@@ -62,17 +62,16 @@ export function usePayDialog(
     payFormAccount.value = item
     payAmount.value = ""
     payPayer.value = ""
-    const d = new Date()
-    const rawPeriod = `01-${String(d.getMonth() + 1).padStart(2, "0")}-${d.getFullYear()}`
+    const rawPeriod = list.listPeriod.value
     const clamped = clampPeriodToMin(rawPeriod)
     payPeriod.value = clamped
     const parts = clamped.split("-")
     if (parts.length === 3) {
-      payPeriodMonth.value = parts[1] ?? String(d.getMonth() + 1).padStart(2, "0")
-      payPeriodYear.value = parts[2] ?? String(d.getFullYear())
+      payPeriodMonth.value = parts[1] ?? ""
+      payPeriodYear.value = parts[2] ?? ""
     } else {
-      payPeriodMonth.value = String(d.getMonth() + 1).padStart(2, "0")
-      payPeriodYear.value = String(d.getFullYear())
+      payPeriodMonth.value = parts[1] ?? ""
+      payPeriodYear.value = parts[2] ?? ""
     }
     payDialogOpen.value = true
     onDropdownClose()
@@ -89,18 +88,27 @@ export function usePayDialog(
   }
 
   function hasValidAmount(): boolean {
-    return parseMoneyBR(payAmount.value) > 0
+    return parseMoneyBR(payAmount.value) >= 0
+  }
+
+  function isZeroAmount(): boolean {
+    return parseMoneyBR(payAmount.value) === 0
   }
 
   function hasValidPayer(): boolean {
+    const amount = parseMoneyBR(payAmount.value)
+    if (amount === 0) return true
     return !!payPayer.value && users.users.value.some((u) => String(u.id) === payPayer.value)
   }
 
   async function submit(): Promise<void> {
     const amount = parseMoneyBR(payAmount.value)
-    if (!payFormAccount.value || amount <= 0) return
-    const selectedUser = users.users.value.find((u) => String(u.id) === payPayer.value)
-    if (!selectedUser) {
+    if (!payFormAccount.value || amount < 0) return
+    const payerId: number | null =
+      amount === 0
+        ? null
+        : (users.users.value.find((u) => String(u.id) === payPayer.value)?.id ?? null)
+    if (amount > 0 && payerId === null) {
       toast.error("Please select a payer")
       return
     }
@@ -110,7 +118,7 @@ export function usePayDialog(
         payFormAccount.value.id,
         amount,
         periodWithFirstDay(payPeriod.value),
-        selectedUser.id,
+        payerId,
       )
       payDialogOpen.value = false
       payFormAccount.value = null
@@ -136,6 +144,7 @@ export function usePayDialog(
     open,
     onAmountInput,
     hasValidAmount,
+    isZeroAmount,
     hasValidPayer,
     submit,
   }
@@ -155,6 +164,7 @@ export interface UsePayDialogReturn {
   open: (item: PayableAccount, onDropdownClose: () => void) => void
   onAmountInput: (e: Event) => void
   hasValidAmount: () => boolean
+  isZeroAmount: () => boolean
   hasValidPayer: () => boolean
   submit: () => Promise<void>
 }

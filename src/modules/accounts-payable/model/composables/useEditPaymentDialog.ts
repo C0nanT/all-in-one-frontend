@@ -70,14 +70,13 @@ export function useEditPaymentDialog(
     editDialogOpen.value = true
     onDropdownClose()
     void users.loadUsers().then(() => {
-      if (!editPayer.value && editFormAccount.value) {
-        const payerId = editFormAccount.value.payment?.payer_id
-        editPayer.value =
-          payerId != null
-            ? String(payerId)
-            : users.users.value[0]
-              ? String(users.users.value[0].id)
-              : ""
+      if (
+        !editPayer.value &&
+        editFormAccount.value &&
+        (editFormAccount.value.payment?.amount ?? 0) > 0
+      ) {
+        const first = users.users.value[0]
+        if (first) editPayer.value = String(first.id)
       }
     })
   }
@@ -89,19 +88,28 @@ export function useEditPaymentDialog(
   }
 
   function hasValidAmount(): boolean {
-    return parseMoneyBR(editAmount.value) > 0
+    return parseMoneyBR(editAmount.value) >= 0
+  }
+
+  function isZeroAmount(): boolean {
+    return parseMoneyBR(editAmount.value) === 0
   }
 
   function hasValidPayer(): boolean {
+    const amount = parseMoneyBR(editAmount.value)
+    if (amount === 0) return true
     return !!editPayer.value && users.users.value.some((u) => String(u.id) === editPayer.value)
   }
 
   async function submit(): Promise<void> {
     if (!editFormAccount.value?.payment?.id || !editPeriod.value) return
     const amount = parseMoneyBR(editAmount.value)
-    if (amount <= 0) return
-    const selectedUser = users.users.value.find((u) => String(u.id) === editPayer.value)
-    if (!selectedUser) {
+    if (amount < 0) return
+    const payerId: number | null =
+      amount === 0
+        ? null
+        : (users.users.value.find((u) => String(u.id) === editPayer.value)?.id ?? null)
+    if (amount > 0 && payerId === null) {
       toast.error("Please select a payer")
       return
     }
@@ -112,7 +120,7 @@ export function useEditPaymentDialog(
         editFormAccount.value.payment.id,
         amount,
         editPeriod.value,
-        selectedUser.id,
+        payerId,
       )
       toast.success("Payment updated")
       editDialogOpen.value = false
@@ -139,6 +147,7 @@ export function useEditPaymentDialog(
     open,
     onAmountInput,
     hasValidAmount,
+    isZeroAmount,
     hasValidPayer,
     submit,
   }
@@ -158,6 +167,7 @@ export interface UseEditPaymentDialogReturn {
   open: (item: PayableAccount, onDropdownClose: () => void) => void
   onAmountInput: (e: Event) => void
   hasValidAmount: () => boolean
+  isZeroAmount: () => boolean
   hasValidPayer: () => boolean
   submit: () => Promise<void>
 }
