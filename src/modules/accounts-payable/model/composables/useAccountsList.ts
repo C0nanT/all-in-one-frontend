@@ -4,15 +4,20 @@ import {
   type PayableAccount,
   type PayableAccountsSummary,
 } from "@/modules/accounts-payable/model/api"
-import { getFormattedDate, periodWithFirstDay } from "@/core/lib/format"
 import { clampPeriodToMin, MIN_PERIOD_STR } from "./usePeriod"
+import { getFormattedDate, getPreviousMonthDate, periodWithFirstDay } from "@/core/lib/format"
+
+function getDefaultListPeriod(): string {
+  const lastMonth = getPreviousMonthDate()
+  return clampPeriodToMin(periodWithFirstDay(getFormattedDate(lastMonth)))
+}
 
 export function useAccountsList() {
   const items = ref<PayableAccount[]>([])
   const summary = ref<PayableAccountsSummary | null>(null)
   const loading = ref(false)
   const error = ref("")
-  const listPeriod = ref(clampPeriodToMin(periodWithFirstDay(getFormattedDate())))
+  const listPeriod = ref(getDefaultListPeriod())
 
   const isMinListPeriod = computed(() => listPeriod.value === MIN_PERIOD_STR)
 

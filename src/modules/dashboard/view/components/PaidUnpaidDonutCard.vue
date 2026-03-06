@@ -1,13 +1,7 @@
 <script setup lang="ts">
 import { RouterLink } from "vue-router"
 import { usePaidUnpaidDonut } from "@/modules/dashboard/model/composables/usePaidUnpaidDonut"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/shared/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/shared/components/ui/card"
 
 const {
   loading,
@@ -16,7 +10,6 @@ const {
   unpaid,
   total,
   isEmpty,
-  currentMonthLabel,
   paidStrokeDasharray,
   unpaidStrokeDasharray,
   unpaidStrokeDashoffset,
@@ -32,7 +25,6 @@ const {
     <Card class="w-full cursor-pointer">
       <CardHeader class="pb-2">
         <CardTitle class="text-base"> Accounts payable </CardTitle>
-        <CardDescription class="text-sm"> {{ currentMonthLabel }} </CardDescription>
       </CardHeader>
       <CardContent class="pt-0">
         <div v-if="loading" class="flex items-center justify-center py-8">

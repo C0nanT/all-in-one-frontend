@@ -6,6 +6,14 @@ export function getFormattedDate(date: Date = new Date()): string {
   return date.toLocaleDateString("pt-BR").replace(/\//g, "-")
 }
 
+/** Returns the first day of the previous month (for period/display reuse). */
+export function getPreviousMonthDate(): Date {
+  const d = new Date()
+  d.setDate(1)
+  d.setMonth(d.getMonth() - 1)
+  return d
+}
+
 /**
  * Formats the date string in the format DD-MM-YYYY (hyphen)
  * to the format DD/MM/YYYY (slash).

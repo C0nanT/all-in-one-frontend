@@ -1,7 +1,7 @@
 import { computed, onMounted, ref } from "vue"
 import { fetchPayableAccountsCounts } from "@/modules/accounts-payable/model/api"
 import { clampPeriodToMin } from "@/modules/accounts-payable/model/composables/usePeriod"
-import { getFormattedDate, periodWithFirstDay } from "@/core/lib/format"
+import { getFormattedDate, getPreviousMonthDate, periodWithFirstDay } from "@/core/lib/format"
 
 const CIRCUMFERENCE = 2 * Math.PI * 40
 
@@ -11,10 +11,7 @@ export function usePaidUnpaidDonut() {
   const paid = ref(0)
   const unpaid = ref(0)
 
-  const currentMonthLabel = new Date().toLocaleDateString("pt-BR", {
-    month: "long",
-    year: "numeric",
-  })
+  const previousMonthDate = getPreviousMonthDate()
 
   const total = computed(() => paid.value + unpaid.value)
   const isEmpty = computed(() => total.value === 0)
@@ -40,7 +37,7 @@ export function usePaidUnpaidDonut() {
     loading.value = true
     error.value = null
     try {
-      const period = clampPeriodToMin(periodWithFirstDay(getFormattedDate()))
+      const period = clampPeriodToMin(periodWithFirstDay(getFormattedDate(previousMonthDate)))
       const { data } = await fetchPayableAccountsCounts(period)
       paid.value = data.paid
       unpaid.value = data.unpaid
@@ -62,7 +59,6 @@ export function usePaidUnpaidDonut() {
     unpaid,
     total,
     isEmpty,
-    currentMonthLabel,
     paidStrokeDasharray,
     unpaidStrokeDasharray,
     unpaidStrokeDashoffset,
